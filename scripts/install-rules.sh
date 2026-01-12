@@ -11,8 +11,8 @@
 set -e
 
 # Configuration
-REPO_URL="https://github.com/RubertoPaulo/cursor-rules"
-RAW_URL="https://raw.githubusercontent.com/RubertoPaulo/cursor-rules/main"
+REPO_URL="https://github.com/TernStay/cursor-rules"
+RAW_URL="https://raw.githubusercontent.com/TernStay/cursor-rules/main"
 
 # Colors for output
 RED='\033[0;31m'

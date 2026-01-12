@@ -35,17 +35,17 @@ cursor-rules/
 
 ```bash
 # Install Python rules in a backend project
-curl -sSL https://raw.githubusercontent.com/RubertoPaulo/cursor-rules/main/scripts/install-rules.sh | bash -s -- python
+curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/install-rules.sh | bash -s -- python
 
 # Install Next.js rules in a frontend project
-curl -sSL https://raw.githubusercontent.com/RubertoPaulo/cursor-rules/main/scripts/install-rules.sh | bash -s -- nextjs
+curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/install-rules.sh | bash -s -- nextjs
 ```
 
 ### Option 2: Clone and Copy
 
 ```bash
 # Clone this repo
-git clone git@github.com:RubertoPaulo/cursor-rules.git ~/cursor-rules
+git clone git@github.com:TernStay/cursor-rules.git ~/cursor-rules
 
 # For Python projects
 cp -r ~/cursor-rules/python/rules/ /path/to/project/.cursor/rules/
@@ -60,7 +60,7 @@ cp ~/cursor-rules/nextjs/AGENTS.md /path/to/project/AGENTS.md
 
 ```bash
 # Add as submodule
-git submodule add git@github.com:RubertoPaulo/cursor-rules.git .cursor-rules
+git submodule add git@github.com:TernStay/cursor-rules.git .cursor-rules
 
 # Symlink the rules you need
 ln -s .cursor-rules/python/rules .cursor/rules
@@ -146,5 +146,5 @@ We use tags for stable rule versions:
 
 ```bash
 # Install specific version
-curl -sSL https://raw.githubusercontent.com/RubertoPaulo/cursor-rules/v1.0.0/scripts/install-rules.sh | bash -s -- python
+curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/v1.0.0/scripts/install-rules.sh | bash -s -- python
 ```
