@@ -7,21 +7,25 @@ Centralized repository for Cursor IDE rules across all TurnStay projects. These 
 ```
 cursor-rules/
 ├── python/                    # Python/FastAPI backend rules
-│   ├── AGENTS.md              # Simple markdown agent instructions
-│   └── rules/                 # Structured rules (.cursor/rules format)
-│       ├── turnstay-backend/  # Core development guidelines (always apply)
-│       ├── api-endpoints/     # FastAPI endpoint patterns
-│       ├── database-orm/      # SQLAlchemy & RLS patterns
-│       ├── pydantic-schemas/  # Request/response schema patterns
-│       └── testing/           # pytest patterns
+│   ├── AGENTS.md              # Simple markdown agent instructions (installed to project root)
+│   └── rules/                 # Structured rules (.mdc format)
+│       ├── turnstay-backend.mdc  # Core development guidelines (always apply)
+│       ├── api-endpoints.mdc      # FastAPI endpoint patterns
+│       ├── database-orm.mdc       # SQLAlchemy & RLS patterns
+│       ├── pydantic-schemas.mdc   # Request/response schema patterns
+│       └── testing.mdc            # pytest patterns
 │
 ├── nextjs/                    # Next.js frontend rules
-│   ├── AGENTS.md              # Simple markdown agent instructions
-│   └── rules/                 # Structured rules
-│       ├── nextjs-core/       # Core Next.js guidelines
-│       ├── components/        # React component patterns
-│       ├── api-routes/        # API route patterns
-│       └── styling/           # Tailwind/CSS patterns
+│   ├── AGENTS.md              # Simple markdown agent instructions (installed to project root)
+│   └── rules/                 # Structured rules (.mdc format)
+│       ├── nextjs-core.mdc       # Core Next.js guidelines
+│       ├── components.mdc         # React component patterns
+│       ├── api-routes.mdc         # API route patterns
+│       └── styling.mdc           # Tailwind/CSS patterns
+│
+├── .cursor/
+│   └── rules/                 # Rules for GitHub remote import (same as python/rules/)
+│       └── *.mdc               # All .mdc rule files
 │
 ├── scripts/
 │   └── install-rules.sh       # Script to install rules in a project
@@ -48,11 +52,13 @@ curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/i
 git clone git@github.com:TernStay/cursor-rules.git ~/cursor-rules
 
 # For Python projects
-cp -r ~/cursor-rules/python/rules/ /path/to/project/.cursor/rules/
+mkdir -p /path/to/project/.cursor/rules/
+cp ~/cursor-rules/python/rules/*.mdc /path/to/project/.cursor/rules/
 cp ~/cursor-rules/python/AGENTS.md /path/to/project/AGENTS.md
 
 # For Next.js projects
-cp -r ~/cursor-rules/nextjs/rules/ /path/to/project/.cursor/rules/
+mkdir -p /path/to/project/.cursor/rules/
+cp ~/cursor-rules/nextjs/rules/*.mdc /path/to/project/.cursor/rules/
 cp ~/cursor-rules/nextjs/AGENTS.md /path/to/project/AGENTS.md
 ```
 
@@ -63,12 +69,13 @@ cp ~/cursor-rules/nextjs/AGENTS.md /path/to/project/AGENTS.md
 git submodule add git@github.com:TernStay/cursor-rules.git .cursor-rules
 
 # Symlink the rules you need
-ln -s .cursor-rules/python/rules .cursor/rules
+mkdir -p .cursor/rules
+ln -s ../.cursor-rules/python/rules/*.mdc .cursor/rules/
 ```
 
 ## 📋 Rule Types
 
-Each rule folder contains a `RULE.md` file with frontmatter that controls how it's applied:
+Each rule is a `.mdc` file with frontmatter that controls how it's applied:
 
 | Type | Frontmatter | Behavior |
 |------|-------------|----------|
@@ -76,6 +83,8 @@ Each rule folder contains a `RULE.md` file with frontmatter that controls how it
 | **File-Scoped** | `globs: ["**/*.py"]` | Applied when working with matching files |
 | **Agent-Decided** | `description: "..."` | Agent decides based on context |
 | **Manual** | No frontmatter | Only when @-mentioned |
+
+**Note:** Cursor 2.3+ uses `.mdc` files (not `RULE.md` in folders). The install script handles this automatically.
 
 ## 🐍 Python Rules (FastAPI/SQLAlchemy)
 
