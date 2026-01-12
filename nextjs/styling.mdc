@@ -1,4 +1,5 @@
 ---
+name: styling
 description: "Tailwind CSS and styling patterns for Next.js applications"
 globs:
   - "**/*.tsx"

@@ -1,0 +1,163 @@
+---
+name: rule-development
+description: "Patterns and conventions for writing Cursor .mdc rule files"
+globs:
+  - "**/*.mdc"
+alwaysApply: false
+---
+
+# Rule Development Patterns
+
+## MDC File Structure
+
+Every rule file must follow this exact structure:
+
+```markdown
+---
+name: rule-name
+description: "Brief description of when this rule applies"
+alwaysApply: true  # or globs: ["**/*.py"] or remove for manual rules
+---
+
+# Rule Title
+
+## Section 1
+Content with examples...
+
+## Section 2
+More content...
+```
+
+## Frontmatter Guidelines
+
+### Required Fields
+- **name**: Kebab-case identifier (e.g., `python-backend`, `nextjs-components`)
+- **description**: Clear, actionable description of when the rule applies
+
+### Optional Fields
+- **alwaysApply: true** - Rule applies to all conversations in projects with this rule
+- **globs: ["pattern"]** - Rule applies when editing files matching glob patterns
+- **description** - If present without alwaysApply/globs, agent decides when to apply
+
+### Frontmatter Examples
+
+```yaml
+# Always applied rule
+---
+name: python-backend
+description: "Core Python/FastAPI development patterns"
+alwaysApply: true
+---
+
+# File-scoped rule
+---
+name: test-files
+description: "Testing patterns for Python test files"
+globs: ["**/test_*.py", "**/*_test.py"]
+---
+
+# Context-aware rule
+---
+name: api-design
+description: "API design patterns for web services"
+---
+
+# Manual rule (no frontmatter)
+---
+name: advanced-patterns
+description: "Advanced patterns for experienced developers"
+---
+```
+
+## Rule Content Guidelines
+
+### Clear Purpose
+Each rule should address exactly one concern:
+
+```markdown
+<!-- ✅ Good: Single focus -->
+# Database Query Optimization
+Guide for writing efficient database queries...
+
+<!-- ❌ Bad: Multiple concerns -->
+# Backend Development
+Covers database, API, testing, deployment...
+```
+
+### Technology-Specific Rules
+Rules should be scoped to specific technologies:
+
+```markdown
+<!-- ✅ Good -->
+# Python Async Patterns
+Applies to Python asyncio development...
+
+<!-- ❌ Bad -->
+# Best Practices
+Generic advice that could apply anywhere...
+```
+
+### Actionable Examples
+Include specific code examples:
+
+```python
+# ✅ Good: Shows exact pattern
+def calculate_total(items: list[Item]) -> float:
+    return sum(item.price * item.quantity for item in items)
+
+# ❌ Bad: Vague advice
+"Write efficient functions"
+```
+
+### Positive and Negative Examples
+
+```python
+# ✅ Correct pattern
+class UserService:
+    def __init__(self, db: Database):
+        self.db = db
+
+# ❌ Anti-pattern
+class UserService:
+    def __init__(self):
+        self.db = Database()  # Tight coupling
+```
+
+## Rule Organization
+
+### Section Structure
+- **Introduction**: What the rule covers
+- **Core Patterns**: Main guidance with examples
+- **Anti-patterns**: What to avoid
+- **Common Mistakes**: Frequent errors and fixes
+- **Quick Reference**: Summary or cheat sheet
+
+### Consistent Formatting
+- Use H2 (`##`) for main sections
+- Use H3 (`###`) for subsections
+- Use code blocks with language tags
+- Use tables for comparisons
+- Use bold/italic for emphasis
+
+## Rule Naming Conventions
+
+### File Names
+- `technology-area.mdc` (e.g., `python-async.mdc`, `nextjs-routing.mdc`)
+- Use hyphens for multi-word names
+- Keep names descriptive but concise
+
+### Rule Names (in frontmatter)
+- Same as filename but without `.mdc` extension
+- Use kebab-case consistently
+
+## Validation Checklist
+
+Before committing a new rule:
+
+- [ ] Frontmatter is valid YAML
+- [ ] Name matches filename
+- [ ] Description is clear and actionable
+- [ ] Content focuses on one concern
+- [ ] Examples are specific and correct
+- [ ] Code blocks have proper syntax highlighting
+- [ ] Rule applies to appropriate technology scope

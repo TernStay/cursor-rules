@@ -1,0 +1,300 @@
+---
+name: script-development
+description: "Patterns for writing installation and validation scripts"
+globs:
+  - "scripts/**/*.sh"
+  - "scripts/**/*.py"
+alwaysApply: false
+---
+
+# Script Development Patterns
+
+## Bash Script Standards
+
+### Script Header Template
+
+```bash
+#!/bin/bash
+# =============================================================================
+# Script Name - Brief description
+# =============================================================================
+# Usage:
+#   ./script.sh [options] <required-args>
+# =============================================================================
+
+set -e  # Exit on any error
+```
+
+### Error Handling
+
+```bash
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_error() {
+    echo -e "${RED}✗ $1${NC}" >&2
+}
+
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠ $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}→ $1${NC}"
+}
+```
+
+### Git Repository Checks
+
+```bash
+check_git_repo() {
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        print_error "Not inside a git repository"
+        exit 1
+    fi
+}
+
+get_project_root() {
+    git rev-parse --show-toplevel
+}
+```
+
+### Argument Parsing
+
+```bash
+main() {
+    local rule_type=""
+    local force_update=false
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --update)
+                force_update=true
+                shift
+                ;;
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            *)
+                if [[ -z "$rule_type" ]]; then
+                    rule_type="$1"
+                else
+                    print_error "Unexpected argument: $1"
+                    exit 1
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    # Validate required arguments
+    if [[ -z "$rule_type" ]]; then
+        print_error "Rule type is required"
+        echo "Usage: $0 <python|nextjs> [--update]"
+        exit 1
+    fi
+}
+```
+
+## Python Script Patterns
+
+### Script Structure
+
+```python
+#!/usr/bin/env python3
+"""
+Script Name - Brief description
+
+Usage:
+    python script.py [options]
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Brief description")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be done")
+
+    args = parser.parse_args()
+
+    # Script logic here
+    pass
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### File Operations
+
+```python
+def validate_mdc_file(file_path: Path) -> bool:
+    """Validate that an MDC file has proper frontmatter."""
+    try:
+        content = file_path.read_text(encoding='utf-8')
+
+        if not content.startswith('---'):
+            return False
+
+        # Parse frontmatter
+        lines = content.split('\n')
+        frontmatter_end = -1
+        for i, line in enumerate(lines):
+            if line.strip() == '---' and i > 0:
+                frontmatter_end = i
+                break
+
+        if frontmatter_end == -1:
+            return False
+
+        frontmatter = '\n'.join(lines[1:frontmatter_end])
+
+        # Validate required fields
+        import yaml
+        data = yaml.safe_load(frontmatter)
+
+        required_fields = ['name', 'description']
+        for field in required_fields:
+            if field not in data:
+                print(f"Missing required field: {field}")
+                return False
+
+        return True
+
+    except Exception as e:
+        print(f"Error validating {file_path}: {e}")
+        return False
+```
+
+### Path Handling
+
+```python
+def find_mdc_files(root_dir: Path) -> list[Path]:
+    """Find all .mdc files in the project."""
+    return list(root_dir.rglob("*.mdc"))
+
+def get_project_root() -> Path:
+    """Get the project root directory."""
+    current = Path.cwd()
+    while current.parent != current:
+        if (current / ".git").exists():
+            return current
+        current = current.parent
+
+    raise RuntimeError("Not in a git repository")
+```
+
+## Common Script Patterns
+
+### File Backup
+
+```bash
+create_backup() {
+    local file="$1"
+    local backup="${file}.backup.$(date +%Y%m%d_%H%M%S)"
+
+    if [[ -f "$file" ]]; then
+        cp "$file" "$backup"
+        print_info "Created backup: $backup"
+    fi
+}
+```
+
+### Download with Validation
+
+```bash
+download_file() {
+    local url="$1"
+    local dest="$2"
+
+    print_info "Downloading $url..."
+
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$url" -o "$dest"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q "$url" -O "$dest"
+    else
+        print_error "Neither curl nor wget found"
+        return 1
+    fi
+
+    # Validate download
+    if [[ ! -s "$dest" ]]; then
+        print_error "Download failed or file is empty"
+        return 1
+    fi
+}
+```
+
+### Directory Creation
+
+```bash
+ensure_directory() {
+    local dir="$1"
+
+    if [[ ! -d "$dir" ]]; then
+        mkdir -p "$dir"
+        print_success "Created directory: $dir"
+    fi
+}
+```
+
+```python
+session.add(new_object)
+await session.commit()
+return await refresh_and_return(session, new_object)
+```
+
+## CompanyAccess Usage
+
+Always use `CompanyAccess` for tenant-scoped queries:
+
+```python
+async def get_payment_intent(
+    payment_intent_id: int,
+    company_access: deps.CompanyAccess = Depends(deps.get_company_access),
+):
+    payment_intent = await company_access.get_payment_intent(payment_intent_id)
+    if not payment_intent:
+        raise HTTPException(status_code=404, detail="Payment intent not found")
+    return payment_intent
+```
+
+## Alembic Migrations
+
+- All schema changes require Alembic migrations
+- Make new columns nullable initially, backfill, then set non-nullable
+- Command: `alembic revision --autogenerate -m "description"`
+- Run with: `./scripts/db_migrate.sh` or `poetry run alembic upgrade head`
+
+## Model Definition Pattern
+
+```python
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from app.models import Base
+
+class NewModel(Base):
+    __tablename__ = "new_models"
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    
+    # Use selectin for async-safe eager loading
+    company = relationship("Company", lazy="selectin")
+```

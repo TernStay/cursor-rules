@@ -1,4 +1,5 @@
 ---
+name: api-routes
 description: "Next.js API route patterns and server actions"
 globs:
   - "app/api/**/*.ts"

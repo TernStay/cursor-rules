@@ -1,4 +1,5 @@
 ---
+name: nextjs-core
 description: "Core Next.js 14+ development guidelines with App Router patterns"
 alwaysApply: true
 ---

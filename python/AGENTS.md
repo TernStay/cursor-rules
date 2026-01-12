@@ -1,15 +1,14 @@
-# TurnStay Backend Agent Instructions
+# Python Backend Development Agent Instructions
 
 ## Project Context
 
-This is a TurnStay backend microservice using:
-- **Python 3.11** with **Poetry** for dependency management
-- **FastAPI** for the web framework
-- **SQLAlchemy 2.0** async ORM with **PostgreSQL**
-- **Alembic** for database migrations
-- **Descope** for authentication
+This project uses Python for backend development with modern patterns and best practices. The specific technology stack may vary by project, but common patterns include:
+
+- **Python 3.11+** with dependency management (Poetry/pip)
+- **FastAPI** or similar web frameworks
+- **SQLAlchemy** or similar ORMs for database access
 - **Pydantic** for data validation
-- **Row-Level Security (RLS)** for multi-tenant data isolation
+- **pytest** for testing
 
 ## Core Principles
 
@@ -17,38 +16,40 @@ This is a TurnStay backend microservice using:
 2. **Minimal changes** - Make the smallest effective change; avoid over-engineering
 3. **Ask when unclear** - Don't guess requirements; ask for clarification
 4. **Follow existing patterns** - Match the codebase's style and conventions
+5. **Type everything** - Use proper type hints throughout
 
 ## Key Patterns
 
-### Endpoints
-- Use `CompanyAccess` for tenant-scoped data access
-- Always include `response_model` in route decorators
-- Use `HTTPException` for error responses
+### Code Organization
+- Use clear, descriptive naming for variables and functions
+- Keep functions focused on single responsibilities
+- Organize imports following Python standards (stdlib, third-party, local)
+- Use relative imports appropriately within packages
 
-### Database
-- Always use `AsyncSession`
-- Use `selectinload` for relationships
-- Commit then refresh for new objects
-
-### Authentication
-- Use `DescopeVerify().verify(token)` - never write custom JWT parsing
-- Trust `request.scope["tenant_id"]` from middleware
-- Use `check_permissions()` for authorization
+### Error Handling
+- Use specific exception types rather than generic ones
+- Provide meaningful error messages
+- Handle edge cases gracefully
+- Log errors appropriately without exposing sensitive information
 
 ### Testing
-- Use pytest-asyncio with provided fixtures
-- Always mock external services (Descope, payments, etc.)
+- Write tests for all public functions and methods
+- Use descriptive test names that explain what is being tested
+- Mock external dependencies to isolate unit tests
 - Follow Arrange-Act-Assert pattern
 
 ## Commands
 
+Common development commands (may vary by project):
+
 ```bash
-./scripts/install_dependencies.sh  # Install deps
-./scripts/db_migrate.sh            # Run migrations
-poetry run pytest -v               # Run tests
-poetry run ruff check .            # Lint
+pip install -r requirements.txt  # Install dependencies
+python -m pytest                 # Run tests
+python -m black .               # Format code
+python -m flake8 .              # Lint code
+python -m mypy .                # Type check
 ```
 
 ## Detailed Rules
 
-See `.cursor/rules/` for comprehensive guidelines on specific topics.
+See `.cursor/rules/` for comprehensive guidelines on specific topics and patterns.

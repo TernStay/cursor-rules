@@ -1,0 +1,319 @@
+---
+name: documentation
+description: "Patterns for writing and maintaining project documentation"
+globs:
+  - "**/*.md"
+  - "**/*.mdc"
+alwaysApply: false
+---
+
+# Documentation Patterns
+
+## README Structure
+
+### Standard README Template
+
+```markdown
+# Project Name
+
+Brief description of what this project does.
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Features
+
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Quick Start
+
+```bash
+# Quick installation command
+curl -sSL script-url | bash
+
+# Quick usage example
+command --example
+```
+
+## Installation
+
+Detailed installation instructions...
+
+## Usage
+
+### Basic Usage
+
+```bash
+command [options] <args>
+```
+
+### Advanced Usage
+
+```bash
+command --advanced-option value
+```
+```
+
+## Documentation Standards
+
+### File Naming Conventions
+
+- `README.md` - Project overview and getting started
+- `CONTRIBUTING.md` - How to contribute to the project
+- `CHANGELOG.md` - Version history and changes
+- `docs/` - Detailed documentation
+  - `ARCHITECTURE.md` - System design and architecture
+  - `API.md` - API documentation
+  - `DEPLOYMENT.md` - Deployment guides
+
+### Content Organization
+
+Each documentation file should have:
+
+1. **Purpose**: What this document covers
+2. **Audience**: Who this is for (developers, users, admins)
+3. **Prerequisites**: What you need to know first
+4. **Content**: Main documentation
+5. **Examples**: Practical examples
+6. **Troubleshooting**: Common issues and solutions
+
+### Consistent Formatting
+
+```markdown
+<!-- Headers -->
+# Main Title (H1)
+## Section (H2)
+### Subsection (H3)
+
+<!-- Code blocks with language -->
+```bash
+echo "Shell commands"
+```
+
+```python
+print("Python code")
+```
+
+<!-- Tables -->
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Data     | Data     | Data     |
+
+<!-- Links -->
+[Link Text](url)
+[Relative Link](docs/file.md)
+
+<!-- Lists -->
+- Bullet point
+- Another point
+
+1. Numbered item
+2. Another item
+```
+
+## MDC Rule Documentation
+
+### Frontmatter Documentation
+
+Document each rule's frontmatter clearly:
+
+```markdown
+---
+name: rule-name
+description: "Clear description of when this rule applies"
+alwaysApply: true
+---
+
+# Rule Title
+
+Brief explanation of what this rule covers and when to use it.
+
+## Context
+
+When this rule should be applied vs other rules.
+
+## Patterns
+
+### Correct Usage
+
+```language
+// Correct pattern with explanation
+```
+
+### Anti-patterns
+
+```language
+// Incorrect pattern with explanation
+```
+
+## Examples
+
+Real-world examples from the codebase...
+
+## Common Mistakes
+
+Frequent errors and how to fix them...
+
+## Quick Reference
+
+Summary table or cheat sheet...
+```
+
+### Rule Categories
+
+| Type | Frontmatter | Use Case |
+|------|-------------|----------|
+| **Core Rules** | `alwaysApply: true` | Fundamental patterns for all development |
+| **Technology Rules** | `globs: ["**/*.ext"]` | Language/framework specific guidance |
+| **Domain Rules** | `description: "..."` | Specialized patterns for specific areas |
+| **Manual Rules** | No frontmatter | Advanced patterns, applied on-demand |
+
+## Contributing Documentation
+
+### Pull Request Template
+
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Documentation update
+- [ ] Refactoring
+- [ ] Breaking change
+
+## Testing
+How this change was tested...
+
+## Checklist
+- [ ] Tests pass
+- [ ] Documentation updated
+- [ ] Code style checked
+- [ ] Self-reviewed
+```
+
+### Issue Templates
+
+```markdown
+---
+name: Bug Report
+about: Report a bug or unexpected behavior
+---
+
+**Describe the bug**
+Clear description of the issue.
+
+**To reproduce**
+Steps to reproduce:
+1. Go to '...'
+2. Click on '...'
+3. See error
+
+**Expected behavior**
+What should happen.
+
+**Screenshots**
+If applicable, add screenshots.
+
+**Environment**
+- OS: [e.g., macOS, Linux]
+- Version: [e.g., 1.0.0]
+```
+    
+    model_config = {"from_attributes": True}  # Enable ORM mode
+```
+
+## Pydantic Version Note
+
+- **New projects**: Use Pydantic v2 (`@field_validator`, `model_config`)
+- **Legacy projects**: Use Pydantic v1 (`@validator`, `class Config`)
+- Check `pyproject.toml` to determine which version
+
+### Pydantic v1 Style (Legacy)
+
+```python
+from pydantic import BaseModel, validator
+
+class ResourceCreateRequest(BaseModel):
+    name: str
+    
+    @validator("name")
+    def validate_name(cls, v):
+        return v.strip()
+    
+    class Config:
+        orm_mode = True
+```
+
+### Pydantic v2 Style (Preferred)
+
+```python
+from pydantic import BaseModel, field_validator, ConfigDict
+
+class ResourceCreateRequest(BaseModel):
+    name: str
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+    @field_validator("name", mode="after")
+    @classmethod
+    def validate_name(cls, v):
+        return v.strip()
+```
+
+## Optional vs Required Fields
+
+For create requests, use required fields:
+```python
+class CreateRequest(BaseModel):
+    name: str  # Required
+    description: str  # Required
+```
+
+For patch/update requests, use optional fields:
+```python
+class PatchRequest(BaseModel):
+    name: str | None = None
+    description: str | None = None
+```
+
+Use `model_dump(exclude_unset=True)` for partial updates.
+
+## Nested Schema Reuse
+
+Create small reusable schemas for common nested objects:
+
+```python
+class ObjectName(BaseModel):
+    id: int
+    name: str
+    
+    model_config = {"from_attributes": True}
+
+class AccountResponse(BaseModel):
+    id: int
+    name: str
+    company: ObjectName  # Reused
+    currency: ObjectName  # Reused
+```
+
+## Field Examples for OpenAPI
+
+Always provide examples for documentation:
+
+```python
+class PaymentIntentCreateRequest(BaseModel):
+    amount: int = Field(..., json_schema_extra={"example": 10000})
+    currency: str = Field(..., json_schema_extra={"example": "ZAR"})
+    description: str | None = Field(None, json_schema_extra={"example": "Payment for order #123"})
+```

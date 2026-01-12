@@ -1,0 +1,149 @@
+---
+name: cursor-rules
+description: "Core cursor-rules development guidelines - building and maintaining Cursor IDE rules"
+alwaysApply: true
+---
+
+# Cursor Rules Development Guidelines
+
+You are working on the **cursor-rules** project - a meta-repository for building Cursor IDE rules. This project creates standardized development guidelines for various technology stacks.
+
+## Project Context
+
+The cursor-rules project consists of:
+- **Rule templates** for different technology stacks (Python, Next.js, etc.)
+- **Installation scripts** for deploying rules to projects
+- **Documentation** and examples
+- **Testing frameworks** for rule validation
+
+## General Development Guidelines
+
+### Search & Reuse First
+Before creating new rules, search existing rule templates. Reuse patterns from similar technology stacks rather than reinventing approaches.
+
+### Plan Minimal Changes
+Focus on the smallest effective rule change. Each rule should address one specific concern clearly. Avoid over-engineering rule structures.
+
+### Technology-Agnostic Mindset
+Rules should be adaptable to different projects using the same technology stack. Avoid hard-coding project-specific details.
+
+### Critical Thinking
+Question whether a new rule is truly needed. Consider if existing rules can be extended instead of creating duplicates.
+
+## Rule Development Guidelines
+
+### Rule File Structure
+Each rule is a `.mdc` file with required frontmatter:
+
+```yaml
+---
+name: rule-name
+description: "Brief description of when this rule applies"
+alwaysApply: true  # or globs: ["**/*.py"] for file-scoped rules
+---
+```
+
+### Rule Content Organization
+- **Clear Purpose**: Each rule should address one specific concern
+- **Technology Agnostic**: Rules should work across different projects using the same stack
+- **Actionable**: Rules should provide specific guidance, not vague advice
+- **Examples**: Include code examples showing correct and incorrect patterns
+
+### Frontmatter Types
+- **alwaysApply: true** - Applied to all chat sessions for this project
+- **globs: ["**/*.py"]** - Applied when working with matching files
+- **description: "..."** - Agent decides when to apply based on context
+- **No frontmatter** - Manual application only (@rule-name)
+
+## Code Style & Organization
+
+### File Naming Conventions
+- Rule files: `technology-area.mdc` (e.g., `python-backend.mdc`, `nextjs-components.mdc`)
+- Test files: `test_*.py` or `*.test.ts`
+- Scripts: `snake_case.sh` or `kebab-case.sh`
+- Documentation: `SCREAMING_SNAKE_CASE.md`
+
+### Import Organization
+Keep imports sorted and grouped in this order:
+1. Standard library (alphabetical)
+2. Third-party packages (alphabetical)
+3. Local imports (relative order by module depth)
+
+```python
+# Standard library
+import os
+import sys
+from pathlib import Path
+
+# Third-party packages
+import yaml
+from typing import Dict, List
+
+# Local imports
+from scripts.utils import validate_rule
+from .rule_parser import parse_frontmatter
+```
+
+### Code Quality
+- Write self-documenting code with clear naming
+- Keep functions focused (Single Responsibility Principle)
+- Include type hints for all function signatures
+- Use descriptive variable names over comments
+- Follow language-specific formatting standards
+
+## Rule Validation
+
+### Testing Rules
+- Create test projects for each technology stack
+- Install rules and verify they work as expected
+- Test edge cases and error conditions
+- Validate frontmatter parsing
+
+### Rule Categories
+- **Core Rules** (`alwaysApply: true`) - Fundamental patterns
+- **Technology Rules** (`globs: ["**/*.ext"]`) - Language/framework specific
+- **Domain Rules** (`description: "..."`) - Specialized patterns
+- **Manual Rules** (no frontmatter) - Advanced/optional guidance
+
+## Contribution Workflow
+
+### Creating New Rules
+1. **Identify Need**: Confirm no existing rule covers the pattern
+2. **Technology Scope**: Define which projects should use the rule
+3. **Write Rule**: Follow established format and style
+4. **Test Rule**: Validate in target projects
+5. **Document Rule**: Update README and documentation
+
+### Updating Existing Rules
+1. **Assess Impact**: Check which projects use the rule
+2. **Backward Compatibility**: Ensure changes don't break existing usage
+3. **Version Changes**: Consider if this requires a major version bump
+4. **Update Tests**: Modify tests to reflect new behavior
+
+## Security & Best Practices
+
+### Rule Content Security
+- Never include sensitive credentials or secrets in examples
+- Use placeholder values that are clearly marked as such
+- Provide guidance on secure patterns without exposing vulnerabilities
+
+### Distribution Security
+- Scripts should download from trusted sources only
+- Validate file integrity when downloading rules
+- Use HTTPS for all external communications
+
+## Quick Reference Commands
+
+```bash
+# Validate rule files
+python -m scripts.validate_rules
+
+# Test rule installation
+./scripts/install-rules.sh python --test
+
+# Format rule files
+find . -name "*.mdc" -exec ./scripts/format_rule.py {} \;
+
+# Check for rule conflicts
+python -m scripts.check_conflicts
+```

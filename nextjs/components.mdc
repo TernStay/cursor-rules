@@ -1,4 +1,5 @@
 ---
+name: components
 description: "React component patterns for Next.js applications"
 globs:
   - "components/**/*.tsx"

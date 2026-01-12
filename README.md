@@ -1,41 +1,50 @@
-# TurnStay Cursor Rules
+# Cursor Rules
 
-Centralized repository for Cursor IDE rules across all TurnStay projects. These rules ensure consistent AI-assisted development practices across our microservices.
+A meta-repository for building and distributing Cursor IDE rules. This project creates standardized development guidelines for various technology stacks and provides tools for rule installation and validation.
 
 ## 📁 Structure
 
 ```
 cursor-rules/
-├── python/                    # Python/FastAPI backend rules
-│   ├── AGENTS.md              # Simple markdown agent instructions (installed to project root)
-│   └── rules/                 # Structured rules (.mdc format)
-│       ├── turnstay-backend.mdc  # Core development guidelines (always apply)
+├── python/                    # Python/FastAPI backend rules template
+│   ├── AGENTS.md              # Agent instructions for Python projects
+│   └── rules/                 # Python-specific .mdc rule files
+│       ├── turnstay-backend.mdc  # TurnStay backend patterns (example)
 │       ├── api-endpoints.mdc      # FastAPI endpoint patterns
-│       ├── database-orm.mdc       # SQLAlchemy & RLS patterns
-│       ├── pydantic-schemas.mdc   # Request/response schema patterns
+│       ├── database-orm.mdc       # SQLAlchemy patterns
+│       ├── pydantic-schemas.mdc   # Request/response validation
 │       └── testing.mdc            # pytest patterns
 │
-├── nextjs/                    # Next.js frontend rules
-│   ├── AGENTS.md              # Simple markdown agent instructions (installed to project root)
-│   └── rules/                 # Structured rules (.mdc format)
-│       ├── nextjs-core.mdc       # Core Next.js guidelines
-│       ├── components.mdc         # React component patterns
-│       ├── api-routes.mdc         # API route patterns
-│       └── styling.mdc           # Tailwind/CSS patterns
+├── nextjs/                    # Next.js frontend rules template
+│   ├── AGENTS.md              # Agent instructions for Next.js projects
+│   ├── nextjs-core.mdc        # Core Next.js guidelines
+│   ├── components.mdc         # React component patterns
+│   ├── api-routes.mdc         # API route handlers
+│   └── styling.mdc            # Tailwind CSS patterns
 │
 ├── .cursor/
-│   └── rules/                 # Rules for GitHub remote import (same as python/rules/)
-│       └── *.mdc               # All .mdc rule files
+│   └── rules/                 # Rules for this cursor-rules project
+│       ├── cursor-rules.mdc       # Core cursor-rules development
+│       ├── rule-development.mdc   # Rule writing patterns
+│       ├── script-development.mdc # Script development patterns
+│       ├── documentation.mdc      # Documentation patterns
+│       └── testing.mdc            # Testing patterns
 │
 ├── scripts/
-│   └── install-rules.sh       # Script to install rules in a project
+│   └── install-rules.sh       # Script to install rules in target projects
+│
+├── docs/
+│   ├── DESIGN_PATTERNS.md     # Design patterns guide
+│   └── TECHNOLOGY_STACK.md    # Technology stack reference
 │
 └── README.md
 ```
 
 ## 🚀 Quick Start
 
-### Option 1: Use the Install Script
+### For Projects Using Rules
+
+Install rules in your project:
 
 ```bash
 # Install Python rules in a backend project
@@ -45,11 +54,20 @@ curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/i
 curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/install-rules.sh | bash -s -- nextjs
 ```
 
-### Option 2: Clone and Copy
+### For Rule Development
+
+Clone this repository to create or modify rules:
+
+```bash
+git clone https://github.com/TernStay/cursor-rules.git
+cd cursor-rules
+```
+
+### Manual Installation
 
 ```bash
 # Clone this repo
-git clone git@github.com:TernStay/cursor-rules.git ~/cursor-rules
+git clone https://github.com/TernStay/cursor-rules.git ~/cursor-rules
 
 # For Python projects
 mkdir -p /path/to/project/.cursor/rules/
@@ -58,7 +76,7 @@ cp ~/cursor-rules/python/AGENTS.md /path/to/project/AGENTS.md
 
 # For Next.js projects
 mkdir -p /path/to/project/.cursor/rules/
-cp ~/cursor-rules/nextjs/rules/*.mdc /path/to/project/.cursor/rules/
+cp ~/cursor-rules/nextjs/*.mdc /path/to/project/.cursor/rules/
 cp ~/cursor-rules/nextjs/AGENTS.md /path/to/project/AGENTS.md
 ```
 
@@ -86,34 +104,36 @@ Each rule is a `.mdc` file with frontmatter that controls how it's applied:
 
 **Note:** Cursor 2.3+ uses `.mdc` files (not `RULE.md` in folders). The install script handles this automatically.
 
-## 🐍 Python Rules (FastAPI/SQLAlchemy)
+## 📋 Available Rule Templates
 
-For TurnStay backend microservices:
+### Python Rules Template
 
-- **turnstay-backend**: Core guidelines, auth patterns, code style (always applies)
-- **api-endpoints**: FastAPI endpoint structure, HTTP conventions
-- **database-orm**: SQLAlchemy async patterns, RLS, migrations
+A comprehensive set of rules for Python/FastAPI backend development:
+
+- **turnstay-backend**: Core development guidelines and patterns
+- **api-endpoints**: FastAPI endpoint structure and HTTP conventions
+- **database-orm**: SQLAlchemy async patterns and database access
 - **pydantic-schemas**: Request/response validation patterns
-- **testing**: pytest-asyncio patterns, fixtures, mocking
+- **testing**: pytest patterns, fixtures, and mocking strategies
 
-### Applies To
+### Next.js Rules Template
 
-- `turnstay_api`
-- `ledger`
-- `recon`
-- `payouts`
-- `treasury`
-- `secure_card_service`
-- `webhook-service`
+Frontend development patterns for Next.js applications:
 
-## ⚛️ Next.js Rules
+- **nextjs-core**: Core Next.js 14+ patterns and App Router conventions
+- **components**: React component patterns and composition
+- **api-routes**: API route handlers and server actions
+- **styling**: Tailwind CSS patterns and styling conventions
 
-For TurnStay frontend applications:
+### Cursor Rules Development
 
-- **nextjs-core**: Core Next.js 14+ patterns, app router
-- **components**: React component patterns, hooks
-- **api-routes**: API route handlers
-- **styling**: Tailwind CSS patterns
+Rules for maintaining this cursor-rules project:
+
+- **cursor-rules**: Core guidelines for rule development
+- **rule-development**: Patterns for writing .mdc rule files
+- **script-development**: Installation and validation script patterns
+- **documentation**: Documentation writing and maintenance patterns
+- **testing**: Testing patterns for rule validation
 
 ## 🔄 Keeping Rules Updated
 
@@ -133,21 +153,38 @@ Add to your CI pipeline to check for rule updates:
 - name: Check cursor rules
   run: |
     # Compare local rules with remote
-    diff -r .cursor/rules/ <(curl -sL $RULES_URL/python/rules/)
+    diff -r .cursor/rules/ <(curl -sL https://raw.githubusercontent.com/TernStay/cursor-rules/main/python/rules/)
 ```
 
 ## 🛠️ Contributing
 
-1. Edit rules in this repository
-2. Test in a project by copying locally
-3. Create a PR with your changes
-4. After merge, run install script in all projects
+### Adding New Rules
+
+1. **Identify the technology stack** the rule applies to
+2. **Create the .mdc file** following the established format
+3. **Add appropriate frontmatter** (name, description, globs/alwaysApply)
+4. **Test the rule** in a sample project
+5. **Update documentation** if needed
+
+### Modifying Existing Rules
+
+1. **Assess impact** on projects using the rule
+2. **Maintain backward compatibility** where possible
+3. **Update frontmatter** if the rule scope changes
+4. **Test thoroughly** across different project types
+
+### Pull Request Process
+
+1. Create a PR with your rule changes
+2. Include test results from sample projects
+3. Update this README if adding new rule templates
+4. Ensure CI checks pass
 
 ## 📖 Reference
 
 - [Cursor Rules Documentation](https://cursor.com/docs/context/rules)
-- [TurnStay Tech Stack](./docs/TECHNOLOGY_STACK.md)
-- [TurnStay Design Patterns](./docs/DESIGN_PATTERNS.md)
+- [Technology Stack Guide](./docs/TECHNOLOGY_STACK.md)
+- [Design Patterns Guide](./docs/DESIGN_PATTERNS.md)
 
 ## 🏷️ Versioning
 
