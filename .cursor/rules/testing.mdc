@@ -1,4 +1,5 @@
 ---
+name: testing
 description: "Testing patterns and conventions for TurnStay services"
 globs:
   - "app/tests/**/*.py"

@@ -1,4 +1,5 @@
 ---
+name: turnstay-backend
 description: "Core TurnStay backend development guidelines - Python, FastAPI, SQLAlchemy patterns"
 alwaysApply: true
 ---

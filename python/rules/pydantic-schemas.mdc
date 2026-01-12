@@ -1,4 +1,5 @@
 ---
+name: pydantic-schemas
 description: "Pydantic schema patterns for request/response validation in TurnStay"
 globs:
   - "app/schemas/**/*.py"

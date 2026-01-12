@@ -1,4 +1,5 @@
 ---
+name: api-endpoints
 description: "FastAPI endpoint patterns and conventions for TurnStay services"
 globs: 
   - "app/api/endpoints/**/*.py"

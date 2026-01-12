@@ -78,9 +78,16 @@ install_from_github() {
     # Create .cursor/rules directory
     mkdir -p "$project_root/.cursor/rules"
     
-    # Copy rules
+    # Copy .mdc rule files
     print_info "Installing rules to $project_root/.cursor/rules/"
-    cp -r "$temp_dir/$rule_type/rules/"* "$project_root/.cursor/rules/"
+    if [ -d "$temp_dir/$rule_type/rules" ]; then
+        # Copy .mdc files directly
+        find "$temp_dir/$rule_type/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
+        # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
+        if [ -d "$temp_dir/.cursor/rules" ]; then
+            find "$temp_dir/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
+        fi
+    fi
     
     # Copy AGENTS.md if it exists
     if [ -f "$temp_dir/$rule_type/AGENTS.md" ]; then
@@ -126,9 +133,16 @@ install_from_local() {
     # Create .cursor/rules directory
     mkdir -p "$project_root/.cursor/rules"
     
-    # Copy rules
+    # Copy .mdc rule files
     print_info "Installing rules to $project_root/.cursor/rules/"
-    cp -r "$rules_repo/$rule_type/rules/"* "$project_root/.cursor/rules/"
+    if [ -d "$rules_repo/$rule_type/rules" ]; then
+        # Copy .mdc files directly
+        find "$rules_repo/$rule_type/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
+        # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
+        if [ -d "$rules_repo/.cursor/rules" ]; then
+            find "$rules_repo/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
+        fi
+    fi
     
     # Copy AGENTS.md if it exists
     if [ -f "$rules_repo/$rule_type/AGENTS.md" ]; then
@@ -146,9 +160,9 @@ show_installed_rules() {
     echo ""
     print_info "Installed rules:"
     if [ -d "$project_root/.cursor/rules" ]; then
-        for rule_dir in "$project_root/.cursor/rules"/*/; do
-            if [ -d "$rule_dir" ]; then
-                local rule_name=$(basename "$rule_dir")
+        for rule_file in "$project_root/.cursor/rules"/*.mdc; do
+            if [ -f "$rule_file" ]; then
+                local rule_name=$(basename "$rule_file" .mdc)
                 echo "  • $rule_name"
             fi
         done

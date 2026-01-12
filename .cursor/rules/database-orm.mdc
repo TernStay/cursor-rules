@@ -1,4 +1,5 @@
 ---
+name: database-orm
 description: "SQLAlchemy async ORM patterns, RLS, and database access for TurnStay"
 globs:
   - "app/models.py"
