@@ -1,0 +1,270 @@
+---
+description: "Tailwind CSS and styling patterns for Next.js applications"
+globs:
+  - "**/*.tsx"
+  - "**/*.css"
+  - "tailwind.config.*"
+alwaysApply: false
+---
+
+# Styling Patterns
+
+## Tailwind CSS Conventions
+
+### Class Organization
+Order classes consistently:
+1. Layout (display, position, flex/grid)
+2. Sizing (width, height)
+3. Spacing (margin, padding)
+4. Typography (font, text)
+5. Visual (background, border, shadow)
+6. Interactive (hover, focus)
+
+```tsx
+// ✅ Good - organized classes
+<div className="flex items-center justify-between w-full p-4 text-sm font-medium bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+
+// ❌ Bad - random order
+<div className="hover:bg-gray-50 flex p-4 shadow-sm border text-sm justify-between w-full rounded-lg bg-white items-center font-medium">
+```
+
+### Using cn() Utility
+```typescript
+// lib/utils.ts
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+```tsx
+// Usage
+import { cn } from '@/lib/utils'
+
+interface ButtonProps {
+  variant?: 'primary' | 'secondary'
+  className?: string
+}
+
+function Button({ variant = 'primary', className }: ButtonProps) {
+  return (
+    <button
+      className={cn(
+        // Base styles
+        'px-4 py-2 rounded-lg font-medium transition-colors',
+        // Variant styles
+        {
+          'bg-blue-600 text-white hover:bg-blue-700': variant === 'primary',
+          'bg-gray-200 text-gray-900 hover:bg-gray-300': variant === 'secondary',
+        },
+        // Allow overrides
+        className
+      )}
+    >
+      Click me
+    </button>
+  )
+}
+```
+
+## CSS Variables for Theming
+
+### Define in globals.css
+```css
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --border: 214.3 31.8% 91.4%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --border: 217.2 32.6% 17.5%;
+  }
+}
+```
+
+### Use in Tailwind Config
+```typescript
+// tailwind.config.ts
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  darkMode: ['class'],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        border: 'hsl(var(--border))',
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
+    },
+  },
+}
+
+export default config
+```
+
+## Responsive Design
+
+### Mobile-First Approach
+```tsx
+// Start with mobile, add breakpoints for larger screens
+<div className="
+  grid grid-cols-1
+  md:grid-cols-2
+  lg:grid-cols-3
+  xl:grid-cols-4
+  gap-4
+">
+```
+
+### Common Breakpoints
+- `sm`: 640px
+- `md`: 768px
+- `lg`: 1024px
+- `xl`: 1280px
+- `2xl`: 1536px
+
+## Animation Patterns
+
+### Tailwind Animations
+```tsx
+// Built-in animations
+<div className="animate-spin" />
+<div className="animate-pulse" />
+<div className="animate-bounce" />
+
+// Transitions
+<button className="transition-colors duration-200 hover:bg-blue-600">
+  Click me
+</button>
+
+// Custom transitions
+<div className="
+  transform transition-all duration-300 ease-out
+  hover:scale-105 hover:shadow-lg
+">
+```
+
+### Framer Motion Integration
+```tsx
+'use client'
+
+import { motion } from 'framer-motion'
+
+export function FadeIn({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+```
+
+### Staggered Animations
+```tsx
+'use client'
+
+import { motion } from 'framer-motion'
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+}
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+}
+
+export function StaggeredList({ items }: { items: Item[] }) {
+  return (
+    <motion.ul variants={container} initial="hidden" animate="show">
+      {items.map(i => (
+        <motion.li key={i.id} variants={item}>
+          {i.name}
+        </motion.li>
+      ))}
+    </motion.ul>
+  )
+}
+```
+
+## Dark Mode
+
+### Toggle Component
+```tsx
+'use client'
+
+import { useTheme } from 'next-themes'
+import { Moon, Sun } from 'lucide-react'
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  
+  return (
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="p-2 rounded-lg hover:bg-muted"
+    >
+      {theme === 'dark' ? <Sun /> : <Moon />}
+    </button>
+  )
+}
+```
+
+### Using dark: Modifier
+```tsx
+<div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  Content that adapts to theme
+</div>
+```
+
+## Best Practices
+
+1. **Avoid Custom CSS** - Use Tailwind utilities when possible
+2. **Use Design Tokens** - CSS variables for colors, spacing, radius
+3. **Consistent Spacing** - Stick to Tailwind's spacing scale (4, 8, 12, 16...)
+4. **Component Variants** - Use cn() and variant objects for consistency
+5. **Responsive First** - Always design mobile-first
+6. **Accessible Colors** - Ensure sufficient contrast ratios

@@ -1,0 +1,270 @@
+---
+description: "Next.js API route patterns and server actions"
+globs:
+  - "app/api/**/*.ts"
+  - "app/**/actions.ts"
+alwaysApply: false
+---
+
+# API Routes & Server Actions
+
+## Route Handlers (app/api)
+
+### Basic Structure
+```typescript
+// app/api/products/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const category = searchParams.get('category')
+  
+  const products = await db.products.findMany({
+    where: category ? { category } : undefined
+  })
+  
+  return NextResponse.json(products)
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.json()
+  
+  // Validate input
+  const validated = productSchema.safeParse(body)
+  if (!validated.success) {
+    return NextResponse.json(
+      { error: validated.error.flatten() },
+      { status: 400 }
+    )
+  }
+  
+  const product = await db.products.create({
+    data: validated.data
+  })
+  
+  return NextResponse.json(product, { status: 201 })
+}
+```
+
+### Dynamic Routes
+```typescript
+// app/api/products/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const product = await db.products.findUnique({
+    where: { id: params.id }
+  })
+  
+  if (!product) {
+    return NextResponse.json(
+      { error: 'Product not found' },
+      { status: 404 }
+    )
+  }
+  
+  return NextResponse.json(product)
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  await db.products.delete({
+    where: { id: params.id }
+  })
+  
+  return new NextResponse(null, { status: 204 })
+}
+```
+
+### Authentication
+```typescript
+// app/api/protected/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  
+  if (!session) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+  
+  // User is authenticated
+  return NextResponse.json({ user: session.user })
+}
+```
+
+## Server Actions
+
+### Basic Server Action
+```typescript
+// app/products/actions.ts
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { z } from 'zod'
+
+const createProductSchema = z.object({
+  name: z.string().min(1),
+  price: z.number().positive(),
+})
+
+export async function createProduct(formData: FormData) {
+  const validated = createProductSchema.safeParse({
+    name: formData.get('name'),
+    price: Number(formData.get('price')),
+  })
+  
+  if (!validated.success) {
+    return { error: validated.error.flatten() }
+  }
+  
+  await db.products.create({
+    data: validated.data
+  })
+  
+  revalidatePath('/products')
+  redirect('/products')
+}
+```
+
+### Using Server Actions in Components
+```tsx
+// app/products/new/page.tsx
+import { createProduct } from '../actions'
+
+export default function NewProductPage() {
+  return (
+    <form action={createProduct}>
+      <input name="name" placeholder="Product name" required />
+      <input name="price" type="number" placeholder="Price" required />
+      <button type="submit">Create Product</button>
+    </form>
+  )
+}
+```
+
+### Server Actions with Client Components
+```tsx
+'use client'
+
+import { useTransition } from 'react'
+import { createProduct } from '../actions'
+
+export function CreateProductForm() {
+  const [isPending, startTransition] = useTransition()
+  
+  function handleSubmit(formData: FormData) {
+    startTransition(async () => {
+      const result = await createProduct(formData)
+      if (result?.error) {
+        // Handle error
+      }
+    })
+  }
+  
+  return (
+    <form action={handleSubmit}>
+      <input name="name" disabled={isPending} />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Creating...' : 'Create'}
+      </button>
+    </form>
+  )
+}
+```
+
+## Validation
+
+### Using Zod
+```typescript
+import { z } from 'zod'
+
+export const productSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  price: z.number().positive('Price must be positive'),
+  category: z.enum(['electronics', 'clothing', 'food']),
+})
+
+export type Product = z.infer<typeof productSchema>
+```
+
+## Error Handling
+
+### Consistent Error Responses
+```typescript
+// lib/api-error.ts
+export class APIError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number = 500,
+    public code?: string
+  ) {
+    super(message)
+  }
+}
+
+export function handleAPIError(error: unknown) {
+  if (error instanceof APIError) {
+    return NextResponse.json(
+      { error: error.message, code: error.code },
+      { status: error.statusCode }
+    )
+  }
+  
+  console.error('Unexpected error:', error)
+  return NextResponse.json(
+    { error: 'Internal server error' },
+    { status: 500 }
+  )
+}
+```
+
+### Usage
+```typescript
+export async function GET(request: NextRequest) {
+  try {
+    const data = await fetchData()
+    return NextResponse.json(data)
+  } catch (error) {
+    return handleAPIError(error)
+  }
+}
+```
+
+## Rate Limiting
+
+```typescript
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '10 s'),
+})
+
+export async function POST(request: NextRequest) {
+  const ip = request.ip ?? '127.0.0.1'
+  const { success } = await ratelimit.limit(ip)
+  
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429 }
+    )
+  }
+  
+  // Handle request...
+}
+```

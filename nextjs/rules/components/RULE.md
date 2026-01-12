@@ -1,0 +1,243 @@
+---
+description: "React component patterns for Next.js applications"
+globs:
+  - "components/**/*.tsx"
+  - "app/**/components/**/*.tsx"
+alwaysApply: false
+---
+
+# React Component Patterns
+
+## Component Structure
+
+### Standard Component Template
+```tsx
+import { cn } from '@/lib/utils'
+import type { ComponentProps } from 'react'
+
+interface ProductCardProps {
+  product: Product
+  className?: string
+  onSelect?: (id: string) => void
+}
+
+export function ProductCard({ 
+  product, 
+  className,
+  onSelect 
+}: ProductCardProps) {
+  return (
+    <div className={cn('rounded-lg border p-4', className)}>
+      <h3>{product.name}</h3>
+      <p>{product.description}</p>
+      {onSelect && (
+        <button onClick={() => onSelect(product.id)}>
+          Select
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+### Client Component Template
+```tsx
+'use client'
+
+import { useState, useCallback } from 'react'
+
+interface CounterProps {
+  initialValue?: number
+  onChange?: (value: number) => void
+}
+
+export function Counter({ initialValue = 0, onChange }: CounterProps) {
+  const [count, setCount] = useState(initialValue)
+  
+  const increment = useCallback(() => {
+    setCount(prev => {
+      const next = prev + 1
+      onChange?.(next)
+      return next
+    })
+  }, [onChange])
+  
+  return (
+    <button onClick={increment}>
+      Count: {count}
+    </button>
+  )
+}
+```
+
+## Component Organization
+
+### File Structure
+```
+components/
+├── ui/                    # Base UI components (shadcn)
+│   ├── button.tsx
+│   ├── input.tsx
+│   └── dialog.tsx
+├── forms/                 # Form components
+│   ├── LoginForm.tsx
+│   └── PaymentForm.tsx
+├── layouts/               # Layout components
+│   ├── Header.tsx
+│   └── Sidebar.tsx
+└── features/              # Feature-specific components
+    ├── payments/
+    │   ├── PaymentCard.tsx
+    │   └── PaymentList.tsx
+    └── dashboard/
+        └── StatsCard.tsx
+```
+
+### Colocation
+Keep related files together:
+```
+components/features/payments/
+├── PaymentCard.tsx        # Component
+├── PaymentCard.test.tsx   # Tests
+├── PaymentCard.stories.tsx # Storybook (if used)
+└── types.ts               # Local types
+```
+
+## Props Patterns
+
+### Extending HTML Elements
+```tsx
+import type { ComponentPropsWithoutRef } from 'react'
+
+interface ButtonProps extends ComponentPropsWithoutRef<'button'> {
+  variant?: 'primary' | 'secondary'
+  isLoading?: boolean
+}
+
+export function Button({ 
+  variant = 'primary',
+  isLoading,
+  children,
+  disabled,
+  ...props 
+}: ButtonProps) {
+  return (
+    <button 
+      disabled={disabled || isLoading}
+      {...props}
+    >
+      {isLoading ? <Spinner /> : children}
+    </button>
+  )
+}
+```
+
+### Children Pattern
+```tsx
+interface CardProps {
+  children: React.ReactNode
+  title?: string
+}
+
+export function Card({ children, title }: CardProps) {
+  return (
+    <div className="rounded-lg border">
+      {title && <h3 className="font-bold">{title}</h3>}
+      {children}
+    </div>
+  )
+}
+```
+
+### Render Props (When Needed)
+```tsx
+interface DataLoaderProps<T> {
+  fetchFn: () => Promise<T>
+  children: (data: T) => React.ReactNode
+  fallback?: React.ReactNode
+}
+
+export function DataLoader<T>({ 
+  fetchFn, 
+  children, 
+  fallback 
+}: DataLoaderProps<T>) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['data'],
+    queryFn: fetchFn
+  })
+  
+  if (isLoading) return fallback ?? <Skeleton />
+  if (!data) return null
+  return children(data)
+}
+```
+
+## Composition
+
+### Compound Components
+```tsx
+// Usage: <Card><Card.Header>Title</Card.Header><Card.Body>Content</Card.Body></Card>
+
+function Card({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-lg border">{children}</div>
+}
+
+Card.Header = function CardHeader({ children }: { children: React.ReactNode }) {
+  return <div className="border-b p-4 font-bold">{children}</div>
+}
+
+Card.Body = function CardBody({ children }: { children: React.ReactNode }) {
+  return <div className="p-4">{children}</div>
+}
+
+export { Card }
+```
+
+## Performance
+
+### Memoization
+```tsx
+import { memo, useMemo, useCallback } from 'react'
+
+// Memoize expensive components
+export const ExpensiveList = memo(function ExpensiveList({ 
+  items 
+}: { items: Item[] }) {
+  return items.map(item => <ListItem key={item.id} item={item} />)
+})
+
+// Memoize expensive calculations
+function Dashboard({ data }: { data: Data[] }) {
+  const stats = useMemo(() => calculateStats(data), [data])
+  return <StatsDisplay stats={stats} />
+}
+```
+
+### Lazy Loading
+```tsx
+import { lazy, Suspense } from 'react'
+
+const HeavyChart = lazy(() => import('./HeavyChart'))
+
+export function Dashboard() {
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <HeavyChart />
+    </Suspense>
+  )
+}
+```
+
+## Accessibility
+
+- Always include `aria-label` for icon-only buttons
+- Use semantic HTML (`<nav>`, `<main>`, `<article>`)
+- Ensure keyboard navigation works
+- Test with screen readers
+
+```tsx
+<button aria-label="Close dialog" onClick={onClose}>
+  <XIcon />
+</button>
+```

@@ -1,0 +1,184 @@
+---
+description: "Core Next.js 14+ development guidelines with App Router patterns"
+alwaysApply: true
+---
+
+# Next.js Core Guidelines
+
+You are working on a TurnStay frontend application using:
+- Next.js 14+ with App Router
+- React 18 with Server Components
+- TypeScript for type safety
+- Tailwind CSS for styling
+
+## General Development Guidelines
+
+### Search & Reuse First
+Before creating new components or utilities, search the codebase for existing ones. Check `components/ui/` for base components and `lib/` for utilities.
+
+### Plan Minimal Changes
+Make the smallest effective change. Don't refactor surrounding code unless explicitly asked.
+
+### No Unfounded Assumptions
+If requirements are unclear, ask for clarification rather than guessing.
+
+## App Router Patterns
+
+### File Conventions
+```
+app/
+├── layout.tsx          # Root layout (required)
+├── page.tsx            # Home page
+├── loading.tsx         # Loading UI
+├── error.tsx           # Error boundary
+├── not-found.tsx       # 404 page
+├── (auth)/             # Route group (no URL impact)
+│   ├── login/
+│   └── register/
+├── dashboard/
+│   ├── layout.tsx      # Nested layout
+│   ├── page.tsx
+│   └── [id]/           # Dynamic segment
+│       └── page.tsx
+└── api/                # API routes
+    └── webhooks/
+        └── route.ts
+```
+
+### Server vs Client Components
+
+```tsx
+// ✅ Server Component (default) - no directive needed
+async function ProductList() {
+  const products = await fetch('/api/products').then(r => r.json())
+  return <ul>{products.map(p => <li key={p.id}>{p.name}</li>)}</ul>
+}
+
+// ✅ Client Component - needs 'use client'
+'use client'
+import { useState } from 'react'
+
+function Counter() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>
+}
+```
+
+### When to Use 'use client'
+- Event handlers (onClick, onChange, etc.)
+- React hooks (useState, useEffect, useContext, etc.)
+- Browser-only APIs (window, localStorage, etc.)
+- Third-party libraries that use React hooks
+
+## Code Style
+
+### TypeScript
+- Never use `any` - define proper types/interfaces
+- Use `interface` for objects, `type` for unions/primitives
+- Export types from a dedicated `types.ts` file
+
+```typescript
+// types.ts
+export interface User {
+  id: string
+  name: string
+  email: string
+}
+
+export type Status = 'pending' | 'active' | 'inactive'
+```
+
+### Naming Conventions
+- Components: `PascalCase` (ProductCard.tsx)
+- Hooks: `camelCase` with `use` prefix (useAuth.ts)
+- Utils: `camelCase` (formatDate.ts)
+- Types: `PascalCase` (User, ProductResponse)
+- Constants: `SCREAMING_SNAKE_CASE`
+
+### Import Organization
+```typescript
+// 1. React/Next imports
+import { Suspense } from 'react'
+import Link from 'next/link'
+
+// 2. Third-party imports
+import { useQuery } from '@tanstack/react-query'
+
+// 3. Local imports - components
+import { Button } from '@/components/ui/button'
+
+// 4. Local imports - utils/hooks
+import { formatDate } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
+
+// 5. Types
+import type { User } from '@/types'
+```
+
+## Data Fetching
+
+### Server Components (Preferred)
+```tsx
+// app/products/page.tsx
+async function ProductsPage() {
+  const products = await fetch('https://api.example.com/products', {
+    next: { revalidate: 60 } // Cache for 60 seconds
+  }).then(r => r.json())
+  
+  return <ProductList products={products} />
+}
+```
+
+### Client Components (When Needed)
+```tsx
+'use client'
+import { useQuery } from '@tanstack/react-query'
+
+function ProductList() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => fetch('/api/products').then(r => r.json())
+  })
+  
+  if (isLoading) return <Skeleton />
+  return <ul>{data.map(p => <ProductCard key={p.id} product={p} />)}</ul>
+}
+```
+
+## Error Handling
+
+### Error Boundaries
+```tsx
+// app/dashboard/error.tsx
+'use client'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  )
+}
+```
+
+### Loading States
+```tsx
+// app/dashboard/loading.tsx
+export default function Loading() {
+  return <Skeleton className="h-96 w-full" />
+}
+```
+
+## Security
+
+- Never expose secrets in client components
+- Use environment variables with `NEXT_PUBLIC_` prefix only for public values
+- Validate all user input on the server
+- Use `next/headers` for reading cookies/headers in Server Components
