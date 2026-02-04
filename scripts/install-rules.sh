@@ -80,13 +80,17 @@ install_from_github() {
     
     # Copy .mdc rule files
     print_info "Installing rules to $project_root/.cursor/rules/"
+    # Copy from rule_type/rules/ (e.g. python/rules/*.mdc)
     if [ -d "$temp_dir/$rule_type/rules" ]; then
-        # Copy .mdc files directly
         find "$temp_dir/$rule_type/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
-        # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
-        if [ -d "$temp_dir/.cursor/rules" ]; then
-            find "$temp_dir/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
-        fi
+    fi
+    # Copy from rule_type/ top-level (e.g. nextjs/*.mdc)
+    if [ -d "$temp_dir/$rule_type" ]; then
+        find "$temp_dir/$rule_type" -maxdepth 1 -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
+    fi
+    # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
+    if [ -d "$temp_dir/.cursor/rules" ]; then
+        find "$temp_dir/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
     
     # Copy AGENTS.md if it exists
@@ -110,6 +114,7 @@ install_from_local() {
     local possible_paths=(
         "$HOME/cursor-rules"
         "$HOME/TurnStay/src/cursor-rules"
+        "$HOME/TurnStay/src/Tools/cursor-rules"
         "../cursor-rules"
         "../../cursor-rules"
     )
@@ -135,13 +140,17 @@ install_from_local() {
     
     # Copy .mdc rule files
     print_info "Installing rules to $project_root/.cursor/rules/"
+    # Copy from rule_type/rules/ (e.g. python/rules/*.mdc)
     if [ -d "$rules_repo/$rule_type/rules" ]; then
-        # Copy .mdc files directly
         find "$rules_repo/$rule_type/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
-        # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
-        if [ -d "$rules_repo/.cursor/rules" ]; then
-            find "$rules_repo/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
-        fi
+    fi
+    # Copy from rule_type/ top-level (e.g. nextjs/*.mdc)
+    if [ -d "$rules_repo/$rule_type" ]; then
+        find "$rules_repo/$rule_type" -maxdepth 1 -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
+    fi
+    # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
+    if [ -d "$rules_repo/.cursor/rules" ]; then
+        find "$rules_repo/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
     
     # Copy AGENTS.md if it exists
