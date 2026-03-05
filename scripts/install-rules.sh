@@ -3,9 +3,13 @@
 # TurnStay Cursor Rules Installer
 # =============================================================================
 # Usage:
-#   ./install-rules.sh python     # Install Python/FastAPI rules
-#   ./install-rules.sh nextjs     # Install Next.js rules
-#   ./install-rules.sh python --update  # Update existing rules
+#   ./install-rules.sh python     # Install/update Python/FastAPI rules
+#   ./install-rules.sh nextjs     # Install/update Next.js rules
+#   ./install-rules.sh python --local  # Use local cursor-rules repo
+#
+# This repo is the source of truth: existing rules are always overwritten
+# with the latest from the selected rule set. Stale rules (removed from
+# source) are deleted from the project.
 # =============================================================================
 
 set -e
@@ -78,21 +82,38 @@ install_from_github() {
     # Create .cursor/rules directory
     mkdir -p "$project_root/.cursor/rules"
     
-    # Copy .mdc rule files
+    # Collect source .mdc basenames (for pruning stale rules later)
+    local source_basenames=""
+    for dir in "$temp_dir/$rule_type/rules" "$temp_dir/$rule_type" "$temp_dir/.cursor/rules"; do
+        if [ -d "$dir" ]; then
+            while IFS= read -r -d '' f; do
+                source_basenames="$source_basenames $(basename "$f")"
+            done < <(find "$dir" -maxdepth 1 -name "*.mdc" -print0 2>/dev/null)
+        fi
+    done
+
+    # Copy .mdc rule files (overwrite existing — this repo is source of truth)
     print_info "Installing rules to $project_root/.cursor/rules/"
-    # Copy from rule_type/rules/ (e.g. python/rules/*.mdc)
     if [ -d "$temp_dir/$rule_type/rules" ]; then
         find "$temp_dir/$rule_type/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
-    # Copy from rule_type/ top-level (e.g. nextjs/*.mdc)
     if [ -d "$temp_dir/$rule_type" ]; then
         find "$temp_dir/$rule_type" -maxdepth 1 -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
-    # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
     if [ -d "$temp_dir/.cursor/rules" ]; then
         find "$temp_dir/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
-    
+
+    # Remove stale rules: .mdc in target that are not in source
+    for f in "$project_root/.cursor/rules"/*.mdc; do
+        [ -f "$f" ] || continue
+        local name=$(basename "$f")
+        if ! echo "$source_basenames" | grep -qF "$name"; then
+            rm -f "$f"
+            print_info "Removed stale rule: $name"
+        fi
+    done
+
     # Copy AGENTS.md if it exists
     if [ -f "$temp_dir/$rule_type/AGENTS.md" ]; then
         print_info "Installing AGENTS.md to project root..."
@@ -134,25 +155,42 @@ install_from_local() {
     fi
     
     print_info "Using local rules from: $rules_repo"
-    
+
+    # Collect source .mdc basenames (for pruning stale rules later)
+    local source_basenames=""
+    for dir in "$rules_repo/$rule_type/rules" "$rules_repo/$rule_type" "$rules_repo/.cursor/rules"; do
+        if [ -d "$dir" ]; then
+            for f in "$dir"/*.mdc; do
+                [ -f "$f" ] && source_basenames="$source_basenames $(basename "$f")"
+            done
+        fi
+    done
+
     # Create .cursor/rules directory
     mkdir -p "$project_root/.cursor/rules"
-    
-    # Copy .mdc rule files
+
+    # Copy .mdc rule files (overwrite existing — this repo is source of truth)
     print_info "Installing rules to $project_root/.cursor/rules/"
-    # Copy from rule_type/rules/ (e.g. python/rules/*.mdc)
     if [ -d "$rules_repo/$rule_type/rules" ]; then
         find "$rules_repo/$rule_type/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
-    # Copy from rule_type/ top-level (e.g. nextjs/*.mdc)
     if [ -d "$rules_repo/$rule_type" ]; then
         find "$rules_repo/$rule_type" -maxdepth 1 -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
-    # Also copy from .cursor/rules if it exists (for GitHub import compatibility)
     if [ -d "$rules_repo/.cursor/rules" ]; then
         find "$rules_repo/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
-    
+
+    # Remove stale rules: .mdc in target that are not in source
+    for f in "$project_root/.cursor/rules"/*.mdc; do
+        [ -f "$f" ] || continue
+        local name=$(basename "$f")
+        if ! echo "$source_basenames" | grep -qF "$name"; then
+            rm -f "$f"
+            print_info "Removed stale rule: $name"
+        fi
+    done
+
     # Copy AGENTS.md if it exists
     if [ -f "$rules_repo/$rule_type/AGENTS.md" ]; then
         print_info "Installing AGENTS.md to project root..."
@@ -189,20 +227,18 @@ main() {
     
     # Check arguments
     if [ $# -lt 1 ]; then
-        echo "Usage: $0 <python|nextjs> [--update] [--local]"
+        echo "Usage: $0 <python|nextjs> [--local]"
         echo ""
         echo "Options:"
-        echo "  python   Install Python/FastAPI rules"
-        echo "  nextjs   Install Next.js rules"
-        echo "  --update Force update existing rules"
-        echo "  --local  Use local repo instead of GitHub"
+        echo "  python   Install/update Python/FastAPI rules (source of truth)"
+        echo "  nextjs   Install/update Next.js rules (source of truth)"
+        echo "  --local  Use local cursor-rules repo instead of GitHub"
         exit 1
     fi
     
     local rule_type=$1
     local use_local=false
-    local force_update=false
-    
+
     # Parse additional arguments
     shift
     while [ $# -gt 0 ]; do
@@ -211,7 +247,7 @@ main() {
                 use_local=true
                 ;;
             --update)
-                force_update=true
+                # Deprecated: we always update now (source of truth)
                 ;;
         esac
         shift
@@ -228,18 +264,11 @@ main() {
     check_git_repo
     
     local project_root=$(get_project_root)
-    
-    # Check if rules already exist
-    if [ -d "$project_root/.cursor/rules" ] && [ "$force_update" = false ]; then
-        print_warning "Rules already exist at $project_root/.cursor/rules"
-        read -p "Do you want to overwrite? (y/N) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Cancelled."
-            exit 0
-        fi
+
+    if [ -d "$project_root/.cursor/rules" ] && ls "$project_root/.cursor/rules"/*.mdc 1>/dev/null 2>&1; then
+        print_info "Updating existing rules (cursor-rules repo is source of truth)..."
     fi
-    
+
     # Install rules
     if [ "$use_local" = true ]; then
         install_from_local "$rule_type"
