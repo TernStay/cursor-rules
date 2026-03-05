@@ -137,13 +137,14 @@ Rules for maintaining this cursor-rules project:
 
 ## 🔄 Keeping Rules Updated
 
-### Manual Update
+**This repo is the source of truth.** When you run the installer on a project that already has rules, it always overwrites with the latest from the selected rule set and removes any rules that no longer exist in the source. No prompt—just re-run the same install command from your project root:
 
 ```bash
-# From your project directory
-cd /path/to/your/project
-../cursor-rules/scripts/install-rules.sh python --update
+# Pull latest Python rules (run from your project root)
+curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/install-rules.sh | bash -s -- python
 ```
+
+Re-running the same command updates your local `.cursor/rules` and `AGENTS.md` to match the repo. Use the install command whenever you want to pull updates.
 
 ### Automated (CI/CD)
 
