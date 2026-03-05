@@ -28,7 +28,7 @@ NC='\033[0m' # No Color
 print_header() {
     echo -e "${BLUE}"
     echo "╔═══════════════════════════════════════════════════════════════╗"
-    echo "║           TurnStay Cursor Rules Installer                     ║"
+    echo "║               TurnStay Cursor Rules Installer                 ║"
     echo "╚═══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }
