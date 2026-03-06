@@ -123,6 +123,34 @@ def has_changes(repo_path: Path) -> bool:
     return r.returncode != 0
 
 
+def format_copied_files(repo_path: Path, rule_type: str) -> None:
+    """Run formatter on .cursor/rules and AGENTS.md so the PR passes CI (Prettier for nextjs, Ruff for python)."""
+    rules_dir = repo_path / ".cursor" / "rules"
+    agents = repo_path / "AGENTS.md"
+    if not rules_dir.exists() and not agents.exists():
+        return
+
+    if rule_type == "nextjs":
+        if not (repo_path / "package.json").exists():
+            return
+        run(
+            ["npx", "--yes", "prettier", "--write", ".cursor/rules", "AGENTS.md"],
+            cwd=repo_path,
+            check=False,
+        )
+    elif rule_type == "python":
+        run(
+            ["ruff", "format", ".cursor/rules", "AGENTS.md"],
+            cwd=repo_path,
+            check=False,
+        )
+        run(
+            ["ruff", "check", "--fix", ".cursor/rules", "AGENTS.md"],
+            cwd=repo_path,
+            check=False,
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Push cursor rules to registered repos and open PRs.")
     parser.add_argument("--dry-run", action="store_true", help="Clone and apply rules only; do not push or create PRs.")
@@ -184,6 +212,7 @@ def main() -> None:
                 continue
 
             copy_rules_into(clone_path, root, rule_type)
+            format_copied_files(clone_path, rule_type)
 
             if not has_changes(clone_path):
                 print(f"  Skipped (no changes)")
@@ -213,6 +242,7 @@ def main() -> None:
                         push_result = reset_result  # report ref not found
                     else:
                         copy_rules_into(clone_path, root, rule_type)
+                        format_copied_files(clone_path, rule_type)
                         run(["git", "add", ".cursor/rules", "AGENTS.md"], cwd=clone_path)
                         run(["git", "commit", "-m", "chore: sync cursor rules from cursor-rules repo"], cwd=clone_path)
                         push_result = run(["git", "push", "--force-with-lease", "origin", BRANCH_NAME], cwd=clone_path, check=False)
