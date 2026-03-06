@@ -1,0 +1,86 @@
+{
+  "repos": [
+    { "name": "recon", "rule_type": "python", "repo": "TernStay/recon", "enabled": true },
+    { "name": "ledger", "rule_type": "python", "repo": "TernStay/ledger", "enabled": true },
+    { "name": "turnstay_api", "rule_type": "python", "repo": "TernStay/turnstay_api", "enabled": true },
+    { "name": "treasury", "rule_type": "python", "repo": "TernStay/treasury", "enabled": true },
+    { "name": "webhook-service", "rule_type": "python", "repo": "TernStay/webhook-service", "enabled": true },
+    { "name": "payouts", "rule_type": "python", "repo": "TernStay/payouts", "enabled": true },
+    { "name": "scaffolding", "rule_type": "python", "repo": "TernStay/scaffolding", "enabled": true },
+    { "name": "secure_card_service", "rule_type": "python", "repo": "TernStay/secure_card_service", "enabled": true },
+    { "name": "payment_pages_react", "rule_type": "nextjs", "repo": "TernStay/payment_pages_react", "enabled": true },
+    { "name": "dashboard-2.0", "rule_type": "nextjs", "repo": "TernStay/dashboard-2.0", "enabled": true },
+    { "name": "cursor-rules", "rule_type": "other", "repo": "TernStay/cursor-rules", "enabled": false },
+    { "name": "evidence-packer", "rule_type": "other", "repo": "TernStay/evidence-packer", "enabled": false },
+    { "name": "pci_infra_base", "rule_type": "other", "repo": "TernStay/pci_infra_base", "enabled": false },
+    { "name": "security", "rule_type": "other", "repo": "TernStay/security", "enabled": false },
+    { "name": "base-images", "rule_type": "other", "repo": "TernStay/base-images", "enabled": false },
+    { "name": "moneymoover", "rule_type": "other", "repo": "TernStay/moneymoover", "enabled": false },
+    { "name": "metabase", "rule_type": "other", "repo": "TernStay/metabase", "enabled": false },
+    { "name": "analytics", "rule_type": "other", "repo": "TernStay/analytics", "enabled": false },
+    { "name": "bastion_infra", "rule_type": "other", "repo": "TernStay/bastion_infra", "enabled": false },
+    { "name": "infra_base", "rule_type": "other", "repo": "TernStay/infra_base", "enabled": false },
+    { "name": "turnstay-cli", "rule_type": "other", "repo": "TernStay/turnstay-cli", "enabled": false },
+    { "name": "dependabot", "rule_type": "other", "repo": "TernStay/dependabot", "enabled": false },
+    { "name": "marx", "rule_type": "other", "repo": "TernStay/marx", "enabled": false },
+    { "name": "aioovex", "rule_type": "other", "repo": "TernStay/aioovex", "enabled": false },
+    { "name": "netgen", "rule_type": "other", "repo": "TernStay/netgen", "enabled": false },
+    { "name": "ternstay", "rule_type": "other", "repo": "TernStay/ternstay", "enabled": false },
+    { "name": "webhooks_listener", "rule_type": "other", "repo": "TernStay/webhooks_listener", "enabled": false },
+    { "name": "dashboard_react", "rule_type": "other", "repo": "TernStay/dashboard_react", "enabled": false }
+  ],
+  "sdk_repos": [
+    {
+      "name": "secure_card_service_sdk",
+      "repo": "TernStay/secure_card_service_sdk"
+    },
+    {
+      "name": "peach_v2_sdk",
+      "repo": "TernStay/peach_v2_sdk"
+    },
+    {
+      "name": "peach_sdk",
+      "repo": "TernStay/peach_sdk"
+    },
+    {
+      "name": "turnstay_webhook_sdk",
+      "repo": "TernStay/turnstay_webhook_sdk"
+    },
+    {
+      "name": "ledger_sdk",
+      "repo": "TernStay/ledger_sdk"
+    },
+    {
+      "name": "turnstay_api_admin_sdk",
+      "repo": "TernStay/turnstay_api_admin_sdk"
+    },
+    {
+      "name": "bitstamp_sdk",
+      "repo": "TernStay/bitstamp_sdk"
+    },
+    {
+      "name": "revio_sdk",
+      "repo": "TernStay/revio_sdk"
+    },
+    {
+      "name": "mercury_sdk",
+      "repo": "TernStay/mercury_sdk"
+    },
+    {
+      "name": "valr_sdk",
+      "repo": "TernStay/valr_sdk"
+    },
+    {
+      "name": "bvnk_sdk",
+      "repo": "TernStay/bvnk_sdk"
+    },
+    {
+      "name": "moneyhash_sdk",
+      "repo": "TernStay/moneyhash_sdk"
+    },
+    {
+      "name": "sdk_scaffolding",
+      "repo": "TernStay/sdk_scaffolding"
+    }
+  ]
+}

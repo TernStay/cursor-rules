@@ -30,8 +30,12 @@ cursor-rules/
 │       ├── documentation.mdc      # Documentation patterns
 │       └── testing.mdc            # Testing patterns
 │
+├── config/
+│   └── repos.json             # Registry of repos and rule types (for push workflow)
+│
 ├── scripts/
-│   └── install-rules.sh       # Script to install rules in target projects
+│   ├── install-rules.sh       # Install rules in current project (pull)
+│   └── push-rules-to-repos.py # Push rules to registered repos and open PRs
 │
 ├── docs/
 │   ├── DESIGN_PATTERNS.md     # Design patterns guide
@@ -145,6 +149,28 @@ curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/i
 ```
 
 Re-running the same command updates your local `.cursor/rules` and `AGENTS.md` to match the repo. Use the install command whenever you want to pull updates.
+
+### Push workflow: update many repos from cursor-rules
+
+To propagate rule changes to **all** eligible projects in one go (instead of running install in each repo):
+
+1. **Registry** – Edit `config/repos.json`. Each repo has `name`, `rule_type` (`python` or `nextjs`), `repo` (e.g. `TernStay/dashboard-2.0`), and optional `enabled` (default `true`). Set `enabled: false` to skip a repo without removing it. See `config/README.md` for the full format.
+2. **Run from cursor-rules root** – The script clones each enabled repo, copies the latest rules for its `rule_type`, and opens a PR (branch `chore/update-cursor-rules`) on each repo that has changes.
+
+```bash
+# From cursor-rules repo root (requires Python 3, git, gh CLI)
+python scripts/push-rules-to-repos.py                  # all enabled repos
+python scripts/push-rules-to-repos.py --type python    # only Python repos
+python scripts/push-rules-to-repos.py --type nextjs    # only Next.js/React repos
+python scripts/push-rules-to-repos.py --repo turnstay_api   # single repo
+python scripts/push-rules-to-repos.py --dry-run       # show diffs, no push or PR
+python scripts/push-rules-to-repos.py --all            # include repos with enabled: false
+python scripts/push-rules-to-repos.py --https          # use HTTPS (default is SSH to avoid keychain prompts)
+```
+
+- **SSH default** – The script uses `git@github.com:...` so Git uses your SSH key; this avoids repeated macOS keychain prompts. Use `--https` if you prefer HTTPS.
+- **No changes** – If a repo already has the same rules, it is skipped (no PR).
+- Full design and options: [Push rules to repos](docs/PUSH_RULES_TO_REPOS.md).
 
 ### Automated (CI/CD)
 
