@@ -183,3 +183,5 @@ export default function Loading() {
 - Use environment variables with `NEXT_PUBLIC_` prefix only for public values
 - Validate all user input on the server
 - Use `next/headers` for reading cookies/headers in Server Components
+- Prefer server-side checks for auth; avoid trusting client-only state for access control
+- Use CSRF protection for state-changing requests (e.g. forms, mutations)
