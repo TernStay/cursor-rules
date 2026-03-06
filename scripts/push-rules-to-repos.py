@@ -118,9 +118,14 @@ def run_visible(cmd: list[str], cwd: Path | None = None) -> None:
 
 
 def has_changes(repo_path: Path) -> bool:
+    """True if there are modified or untracked files (diff-index misses untracked)."""
     run(["git", "update-index", "-q", "--refresh"], cwd=repo_path)
     r = run(["git", "diff-index", "--quiet", "HEAD", "--"], cwd=repo_path, check=False)
-    return r.returncode != 0
+    if r.returncode != 0:
+        return True  # Modified tracked files
+    # Also check untracked (e.g. new .mdc files) via status --porcelain
+    status = run(["git", "status", "--porcelain"], cwd=repo_path, check=False)
+    return bool(status.stdout.strip())
 
 
 def format_copied_files(repo_path: Path, rule_type: str) -> None:
