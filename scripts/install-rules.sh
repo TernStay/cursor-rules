@@ -83,8 +83,9 @@ install_from_github() {
     mkdir -p "$project_root/.cursor/rules"
     
     # Collect source .mdc basenames (for pruning stale rules later)
+    # Do NOT include .cursor/rules - those are meta-rules for cursor-rules repo, not for target projects
     local source_basenames=""
-    for dir in "$temp_dir/$rule_type/rules" "$temp_dir/$rule_type" "$temp_dir/.cursor/rules"; do
+    for dir in "$temp_dir/$rule_type/rules" "$temp_dir/$rule_type"; do
         if [ -d "$dir" ]; then
             while IFS= read -r -d '' f; do
                 source_basenames="$source_basenames $(basename "$f")"
@@ -99,9 +100,6 @@ install_from_github() {
     fi
     if [ -d "$temp_dir/$rule_type" ]; then
         find "$temp_dir/$rule_type" -maxdepth 1 -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
-    fi
-    if [ -d "$temp_dir/.cursor/rules" ]; then
-        find "$temp_dir/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
 
     # Remove stale rules: .mdc in target that are not in source
@@ -158,7 +156,7 @@ install_from_local() {
 
     # Collect source .mdc basenames (for pruning stale rules later)
     local source_basenames=""
-    for dir in "$rules_repo/$rule_type/rules" "$rules_repo/$rule_type" "$rules_repo/.cursor/rules"; do
+    for dir in "$rules_repo/$rule_type/rules" "$rules_repo/$rule_type"; do
         if [ -d "$dir" ]; then
             for f in "$dir"/*.mdc; do
                 [ -f "$f" ] && source_basenames="$source_basenames $(basename "$f")"
@@ -176,9 +174,6 @@ install_from_local() {
     fi
     if [ -d "$rules_repo/$rule_type" ]; then
         find "$rules_repo/$rule_type" -maxdepth 1 -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
-    fi
-    if [ -d "$rules_repo/.cursor/rules" ]; then
-        find "$rules_repo/.cursor/rules" -name "*.mdc" -exec cp {} "$project_root/.cursor/rules/" \;
     fi
 
     # Remove stale rules: .mdc in target that are not in source

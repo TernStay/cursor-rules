@@ -57,12 +57,11 @@ def is_repo_enabled(entry: dict) -> bool:
 
 
 def collect_source_mdc_basenames(root: Path, rule_type: str) -> set[str]:
-    """Same rule set as install script: rule_type/rules, rule_type (top-level), .cursor/rules."""
+    """Rule set: rule_type/rules and rule_type (top-level) only. .cursor/rules is for this repo, not targets."""
     basenames: set[str] = set()
     for part in [
         root / rule_type / "rules",
         root / rule_type,
-        root / ".cursor" / "rules",
     ]:
         if part.is_dir():
             for f in part.glob("*.mdc"):
@@ -90,12 +89,7 @@ def copy_rules_into(target_root: Path, cursor_rules_root: Path, rule_type: str) 
             if src.is_file():
                 (rules_dir / src.name).write_text(src.read_text())
 
-    # Copy .mdc from .cursor/rules
-    cr_rules = cursor_rules_root / ".cursor" / "rules"
-    if cr_rules.is_dir():
-        for src in cr_rules.glob("*.mdc"):
-            if src.is_file():
-                (rules_dir / src.name).write_text(src.read_text())
+    # Do NOT copy .cursor/rules - those are meta-rules for this repo, not for target projects
 
     # Remove stale .mdc in target
     if rules_dir.exists():
