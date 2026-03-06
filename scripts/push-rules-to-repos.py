@@ -36,8 +36,8 @@ def find_cursor_rules_root() -> Path:
     root = Path(os.environ.get("CURSOR_RULES_ROOT", os.getcwd())).resolve()
     if not (root / "config" / "repos.json").exists():
         raise SystemExit("config/repos.json not found. Run from cursor-rules repo root or set CURSOR_RULES_ROOT.")
-    if not (root / "python").is_dir() and not (root / "nextjs").is_dir():
-        raise SystemExit("cursor-rules root must contain python/ or nextjs/. Run from cursor-rules repo root.")
+    if not (root / "python").is_dir() and not (root / "nextjs").is_dir() and not (root / "sdk").is_dir():
+        raise SystemExit("cursor-rules root must contain python/, nextjs/, or sdk/. Run from cursor-rules repo root.")
     return root
 
 
@@ -143,7 +143,7 @@ def format_copied_files(repo_path: Path, rule_type: str) -> None:
             cwd=repo_path,
             check=False,
         )
-    elif rule_type == "python":
+    elif rule_type in ("python", "sdk"):
         run(
             ["ruff", "format", ".cursor/rules", "AGENTS.md"],
             cwd=repo_path,
@@ -159,7 +159,7 @@ def format_copied_files(repo_path: Path, rule_type: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Push cursor rules to registered repos and open PRs.")
     parser.add_argument("--dry-run", action="store_true", help="Clone and apply rules only; do not push or create PRs.")
-    parser.add_argument("--type", choices=["python", "nextjs"], help="Only process repos with this rule_type.")
+    parser.add_argument("--type", choices=["python", "nextjs", "sdk"], help="Only process repos with this rule_type.")
     parser.add_argument("--repo", metavar="NAME", help="Only process the repo with this name in the registry.")
     parser.add_argument("--all", action="store_true", help="Include repos that have \"enabled\": false in config.")
     parser.add_argument("--https", action="store_true", help="Use HTTPS for clone/push (default: SSH, to avoid keychain prompts).")
@@ -170,8 +170,8 @@ def main() -> None:
 
     if not args.all:
         repos = [r for r in repos if is_repo_enabled(r)]
-    # Only python and nextjs receive rules; other rule_types are tracking-only
-    repos = [r for r in repos if r.get("rule_type") in ("python", "nextjs")]
+    # Only python, nextjs, and sdk receive rules; other rule_types are tracking-only
+    repos = [r for r in repos if r.get("rule_type") in ("python", "nextjs", "sdk")]
     if args.type:
         repos = [r for r in repos if r.get("rule_type") == args.type]
     if args.repo:

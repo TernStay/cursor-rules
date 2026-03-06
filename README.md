@@ -22,6 +22,15 @@ cursor-rules/
 │   ├── api-routes.mdc         # API route handlers
 │   └── styling.mdc            # Tailwind CSS patterns
 │
+├── sdk/                       # Python SDK rules template
+│   ├── AGENTS.md              # Agent instructions for SDK projects
+│   └── rules/                 # SDK-specific .mdc rule files
+│       ├── sdk-client-pattern.mdc   # Client class pattern
+│       ├── sdk-schemas.mdc         # Params, Response, Request
+│       ├── sdk-client-utils.mdc    # client_utils, auth_utils
+│       ├── sdk-testing.mdc         # Tests, run_sdk
+│       └── sdk-structure.mdc       # Project layout, versioning
+│
 ├── .cursor/
 │   └── rules/                 # Rules for this cursor-rules project
 │       ├── cursor-rules.mdc       # Core cursor-rules development
@@ -56,6 +65,9 @@ curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/i
 
 # Install Next.js rules in a frontend project
 curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/install-rules.sh | bash -s -- nextjs
+
+# Install SDK rules in a Python SDK project
+curl -sSL https://raw.githubusercontent.com/TernStay/cursor-rules/main/scripts/install-rules.sh | bash -s -- sdk
 ```
 
 ### For Rule Development
@@ -162,6 +174,7 @@ To propagate rule changes to **all** eligible projects in one go (instead of run
 python scripts/push-rules-to-repos.py                  # all enabled repos
 python scripts/push-rules-to-repos.py --type python    # only Python repos
 python scripts/push-rules-to-repos.py --type nextjs    # only Next.js/React repos
+python scripts/push-rules-to-repos.py --type sdk       # only Python SDK repos
 python scripts/push-rules-to-repos.py --repo turnstay_api   # single repo
 python scripts/push-rules-to-repos.py --dry-run       # show diffs, no push or PR
 python scripts/push-rules-to-repos.py --all            # include repos with enabled: false

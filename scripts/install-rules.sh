@@ -227,11 +227,12 @@ main() {
     
     # Check arguments
     if [ $# -lt 1 ]; then
-        echo "Usage: $0 <python|nextjs> [--local]"
+        echo "Usage: $0 <python|nextjs|sdk> [--local]"
         echo ""
         echo "Options:"
         echo "  python   Install/update Python/FastAPI rules (source of truth)"
         echo "  nextjs   Install/update Next.js rules (source of truth)"
+        echo "  sdk      Install/update Python SDK rules (source of truth)"
         echo "  --local  Use local cursor-rules repo instead of GitHub"
         exit 1
     fi
@@ -254,9 +255,9 @@ main() {
     done
     
     # Validate rule type
-    if [[ "$rule_type" != "python" && "$rule_type" != "nextjs" ]]; then
+    if [[ "$rule_type" != "python" && "$rule_type" != "nextjs" && "$rule_type" != "sdk" ]]; then
         print_error "Invalid rule type: $rule_type"
-        echo "Valid types: python, nextjs"
+        echo "Valid types: python, nextjs, sdk"
         exit 1
     fi
     
