@@ -10,6 +10,19 @@
     { "name": "secure_card_service", "rule_type": "python", "repo": "TernStay/secure_card_service", "enabled": true },
     { "name": "payment_pages_react", "rule_type": "nextjs", "repo": "TernStay/payment_pages_react", "enabled": true },
     { "name": "dashboard-2.0", "rule_type": "nextjs", "repo": "TernStay/dashboard-2.0", "enabled": true },
+    { "name": "secure_card_service_sdk", "rule_type": "sdk", "repo": "TernStay/secure_card_service_sdk", "enabled": true },
+    { "name": "peach_v2_sdk", "rule_type": "sdk", "repo": "TernStay/peach_v2_sdk", "enabled": true },
+    { "name": "peach_sdk", "rule_type": "sdk", "repo": "TernStay/peach_sdk", "enabled": true },
+    { "name": "turnstay_webhook_sdk", "rule_type": "sdk", "repo": "TernStay/turnstay_webhook_sdk", "enabled": true },
+    { "name": "ledger_sdk", "rule_type": "sdk", "repo": "TernStay/ledger_sdk", "enabled": true },
+    { "name": "turnstay_api_admin_sdk", "rule_type": "sdk", "repo": "TernStay/turnstay_api_admin_sdk", "enabled": true },
+    { "name": "bitstamp_sdk", "rule_type": "sdk", "repo": "TernStay/bitstamp_sdk", "enabled": true },
+    { "name": "revio_sdk", "rule_type": "sdk", "repo": "TernStay/revio_sdk", "enabled": true },
+    { "name": "mercury_sdk", "rule_type": "sdk", "repo": "TernStay/mercury_sdk", "enabled": true },
+    { "name": "valr_sdk", "rule_type": "sdk", "repo": "TernStay/valr_sdk", "enabled": true },
+    { "name": "bvnk_sdk", "rule_type": "sdk", "repo": "TernStay/bvnk_sdk", "enabled": true },
+    { "name": "moneyhash_sdk", "rule_type": "sdk", "repo": "TernStay/moneyhash_sdk", "enabled": false },
+    { "name": "sdk_scaffolding", "rule_type": "sdk", "repo": "TernStay/sdk_scaffolding", "enabled": true },
     { "name": "cursor-rules", "rule_type": "other", "repo": "TernStay/cursor-rules", "enabled": false },
     { "name": "evidence-packer", "rule_type": "other", "repo": "TernStay/evidence-packer", "enabled": false },
     { "name": "pci_infra_base", "rule_type": "other", "repo": "TernStay/pci_infra_base", "enabled": false },
@@ -28,59 +41,5 @@
     { "name": "ternstay", "rule_type": "other", "repo": "TernStay/ternstay", "enabled": false },
     { "name": "webhooks_listener", "rule_type": "other", "repo": "TernStay/webhooks_listener", "enabled": false },
     { "name": "dashboard_react", "rule_type": "other", "repo": "TernStay/dashboard_react", "enabled": false }
-  ],
-  "sdk_repos": [
-    {
-      "name": "secure_card_service_sdk",
-      "repo": "TernStay/secure_card_service_sdk"
-    },
-    {
-      "name": "peach_v2_sdk",
-      "repo": "TernStay/peach_v2_sdk"
-    },
-    {
-      "name": "peach_sdk",
-      "repo": "TernStay/peach_sdk"
-    },
-    {
-      "name": "turnstay_webhook_sdk",
-      "repo": "TernStay/turnstay_webhook_sdk"
-    },
-    {
-      "name": "ledger_sdk",
-      "repo": "TernStay/ledger_sdk"
-    },
-    {
-      "name": "turnstay_api_admin_sdk",
-      "repo": "TernStay/turnstay_api_admin_sdk"
-    },
-    {
-      "name": "bitstamp_sdk",
-      "repo": "TernStay/bitstamp_sdk"
-    },
-    {
-      "name": "revio_sdk",
-      "repo": "TernStay/revio_sdk"
-    },
-    {
-      "name": "mercury_sdk",
-      "repo": "TernStay/mercury_sdk"
-    },
-    {
-      "name": "valr_sdk",
-      "repo": "TernStay/valr_sdk"
-    },
-    {
-      "name": "bvnk_sdk",
-      "repo": "TernStay/bvnk_sdk"
-    },
-    {
-      "name": "moneyhash_sdk",
-      "repo": "TernStay/moneyhash_sdk"
-    },
-    {
-      "name": "sdk_scaffolding",
-      "repo": "TernStay/sdk_scaffolding"
-    }
   ]
 }
