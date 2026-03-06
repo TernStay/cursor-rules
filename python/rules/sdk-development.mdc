@@ -1,0 +1,202 @@
+---
+name: sdk-development
+description: "Guidelines for building Python SDKs - Client class patterns, schema organization, testing, and release"
+globs: ["**/client.py", "**/client_utils.py", "**/schemas/**/*.py", "**/run_sdk.py", "**/test_*.py", "**/pyproject.toml"]
+---
+
+# SDK Development Guidelines
+
+SDKs should follow the structure and patterns established in `turnstay_api_admin_sdk`. Use the [sdk_scaffolding](https://github.com/TernStay/sdk_scaffolding) repository as the starting point for new SDK projects.
+
+## Reference Implementation
+
+The desired service structure mirrors `turnstay_api_admin_sdk`:
+- **Client class** as the main interface
+- **Schemas** hold all request/response complexity
+- **client_utils.py** handles all HTTP execution
+- **auth_utils.py** (optional) for complex authentication
+
+---
+
+## 1. Client Class – Keep It Simple
+
+The Client is the main interface. Methods should be **simple and consistent**. All complexity lives in schemas, not in the Client.
+
+### Pattern for Every Method
+
+```python
+async def endpoint_name(
+    self,
+    param1: type,
+    param2: type,
+) -> endpoint_schema.Response | BaseResponseError:
+    kwargs = {
+        "api_key": self.api_key,
+        "environment": self.environment,
+        "params": endpoint_schema.Params(
+            param1=param1,
+            param2=param2,
+        ),
+    }
+    request = endpoint_schema.Request(**kwargs)
+    return await execute(request)
+```
+
+### Rules
+
+- Client methods only: build kwargs, instantiate Request, call `execute(request)`
+- No HTTP logic, no response parsing, no branching in Client methods
+- Return type: `schema.Response | BaseResponseError`
+- For GET endpoints: use `GetParams` and `GetRequest` instead of `Params` and `Request`
+
+---
+
+## 2. Schema Organization – Request, Response, Params
+
+Each endpoint has three core schema types:
+
+| Type | Purpose |
+|------|---------|
+| **Params** | Input parameters (request body for POST, query params for GET) |
+| **Response** | Success response shape |
+| **Request** | Full request config (path, verb, response_type, params) |
+
+### POST Example
+
+```python
+class Params(BaseParams):
+    accounting_wallet_id: int
+    amount: int
+    bank_currency: str
+    provider_account_id: int
+
+class Response(BaseResponse):
+    id: int
+    account_amount: int
+    # ... nested models as needed
+
+class Request(BaseRequest):
+    params: Params
+    path: str = "accounting/payout"
+    response_type: Type[Response] = Response
+    verb = VERB.POST
+```
+
+### GET Example
+
+```python
+class GetParams(BaseParams):
+    id: int  # or payment_intent_id, fx_transfer_id, etc.
+
+class Response(BaseResponse):
+    id: int
+    # ...
+
+class GetRequest(BaseRequest):
+    params: GetParams
+    path: str = "payout"
+    response_type: Type[Response] = Response
+    verb = VERB.GET
+```
+
+### Keep Schemas Simple
+
+- Move shared logic into `BaseRequest`, `BaseResponse`, `BaseParams`
+- Endpoint-specific overrides (e.g. different base URL) go in the Request class
+- Goal: new endpoints require minimal boilerplate
+
+---
+
+## 3. Base Classes – Centralize Complexity
+
+| Base Class | Location | Responsibility |
+|------------|----------|-----------------|
+| **BaseRequest** | `schemas/requests.py` | api_key, environment, path, verb, auth_headers(), url(), request_headers() |
+| **BaseParams** | `schemas/requests.py` | Serialization (e.g. Decimal → str) |
+| **BaseResponse** | `schemas/responses.py` | Empty base for response models |
+| **BaseResponseError** | `schemas/responses.py` | status, reason, errors |
+
+Endpoint-specific Requests override only what differs: `path`, `response_type`, `verb`, and optionally `url()` for custom base URLs.
+
+---
+
+## 4. client_utils.py – All API Call Logic
+
+All code related to making API calls lives in `client_utils.py`, **not** in the Client.
+
+- **`execute(request: BaseRequest)`** – Main entry: builds URL, headers, payload, performs HTTP call, delegates to `parse_response`
+- **`parse_response(request, response)`** – Handles 2xx vs error status, returns `Response` or `BaseResponseError`
+- **`wrap_response(response, response_type)`** – Converts raw JSON to typed Response
+- **`remove_null(data)`** – Recursively strips None/empty values for POST bodies
+
+Client methods only call `execute(request)`.
+
+---
+
+## 5. auth_utils.py – Complex Authentication Only
+
+If authentication is non-trivial (OAuth, token refresh, multiple auth schemes), use `auth_utils.py` for helper functions. Simple Bearer token auth can stay in `BaseRequest.auth_headers()`.
+
+---
+
+## 6. Adding a New Endpoint – Follow Existing Structure
+
+1. Create schema module: `Params`/`GetParams`, `Response`, `Request`/`GetRequest`
+2. Add Client method: kwargs → Request → `execute(request)`
+3. Do **not** add branching, retries, or custom logic to the Client method
+4. Mirror naming and structure of existing endpoints
+
+---
+
+## 7. Testing – One File Per Client Method
+
+- **One test file per Client method**: `test_accounting_payout.py`, `test_get_payout.py`
+- **Related endpoints**: group under subdirs, e.g. `tests/payout/get_payout.py`, `tests/payout/create_payout.py`
+- **Fixtures**: `tests/fixtures/<endpoint>_fixtures.py` for raw success/failure dicts
+- **Mocks**: `tests/fixtures/mocks/<endpoint>_mocks.py` for monkeypatching `aiohttp.ClientSession`
+- Use `@pytest.mark.asyncio` for async tests
+- Test both success and error (e.g. 400) paths
+
+---
+
+## 8. run_sdk.py – Local Testing Entrypoint
+
+Every new endpoint must be added to `run_sdk.py`. This file lets users run a single Client method and inspect the result.
+
+### Pattern
+
+```python
+async def run_<endpoint_name>():
+    client = Client(api_key=API_KEY, environment=ENVIRONMENT)
+    try:
+        response = await client.<method_name>(...)
+        print("---------------------------------------------------------------")
+        print("<Endpoint> Response:", response)
+        print("---------------------------------------------------------------")
+        return response
+    except Exception as e:
+        print("---------------------------------------------------------------")
+        print(f"<Endpoint> failed: {e}")
+        print("---------------------------------------------------------------")
+```
+
+Wire the new `run_*` function into `main()` so it can be executed when running the script.
+
+---
+
+## 9. Version Bump After Changes
+
+After modifying the SDK, bump the version in `pyproject.toml` or wherever the version is defined (e.g. `__about__.py` when using hatch dynamic version).
+
+---
+
+## Quick Reference
+
+| Task | Action |
+|------|--------|
+| New endpoint | Schema (Params, Response, Request) → Client method → `run_sdk.py` → tests |
+| HTTP logic | Put in `client_utils.py` |
+| Auth helpers | Put in `auth_utils.py` if complex |
+| Client method | kwargs → Request → `execute(request)` only |
+| Tests | One file per method; fixtures + mocks |
+| Release | Bump version in pyproject.toml / __about__.py |
