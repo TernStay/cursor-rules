@@ -1,3 +1,5 @@
+> **Status: Implemented.** This document was originally a spec and now serves as architecture reference.
+
 # Pushing Cursor Rules to Multiple Repos (PR workflow)
 
 ## Idea
@@ -86,7 +88,8 @@ cursor-rules/
 │   ├── install-rules.sh    # (existing) pull rules into current project
 │   └── push-rules-to-repos.py   # push rules to registered repos and open PRs
 └── docs/
-    └── PUSH_RULES_TO_REPOS.md   # This doc
+    └── architecture/
+        └── push-rules-to-repos.md   # This doc
 ```
 
 The script is Python (stdlib only, no PyYAML). Edit `config/repos.json` to add or remove repos; then run from cursor-rules root:
