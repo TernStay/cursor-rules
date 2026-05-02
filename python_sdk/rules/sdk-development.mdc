@@ -6,15 +6,33 @@ globs: ["**/client.py", "**/client_utils.py", "**/schemas/**/*.py", "**/run_sdk.
 
 # SDK Development Guidelines
 
-SDKs should follow the structure and patterns established in `turnstay_api_admin_sdk`. Use the [sdk_scaffolding](https://github.com/TernStay/sdk_scaffolding) repository as the starting point for new SDK projects.
+SDKs should follow the structure and patterns established in `turnstay_api_admin_sdk` and `peach_v2_sdk`. Use the [sdk_scaffolding](https://github.com/TernStay/sdk_scaffolding) repository as the starting point for new SDK projects.
 
 ## Reference Implementation
 
-The desired service structure mirrors `turnstay_api_admin_sdk`:
+The desired structure mirrors `turnstay_api_admin_sdk` and `peach_v2_sdk`:
 - **Client class** as the main interface
 - **Schemas** hold all request/response complexity
 - **client_utils.py** handles all HTTP execution
 - **auth_utils.py** (optional) for complex authentication
+
+---
+
+## Before You Start a New SDK
+
+**Cross-reference `peach_v2_sdk` as you go.** It's the actively maintained reference. The `sdk_scaffolding` repo provides the canonical starting layout, but it may lag behind. When something looks out of date, copy the current shape from `peach_v2_sdk` and consider opening a PR to refresh the scaffold.
+
+**When copying from another SDK or scaffold, don't forget the hidden files.** A `cp -r ../source_sdk/* .` skips dotfiles. Use `cp -a` or explicitly include them. The ones to watch:
+- `.github/` — CI/CD workflows + composite actions (almost always needed)
+- `.cursor/rules/` — project-level cursor rules
+- `.pre-commit-config.yaml`
+- `AGENTS.md`
+- `LICENSE`
+- `poetry.toml`
+
+**TurnStay SDKs use Poetry, not Hatch.** Even if a scaffold or template starts on Hatch, convert to Poetry — the included CI workflow and composite actions assume Poetry.
+
+**Pin ruff to the exact same version in `pyproject.toml` and `.pre-commit-config.yaml`.** Drift between local pre-commit hooks and the static-analysis CI step causes "passes locally, fails in CI" loops. Use an exact pin (e.g. `ruff = "0.15.12"` in both files), not a caret range.
 
 ---
 
