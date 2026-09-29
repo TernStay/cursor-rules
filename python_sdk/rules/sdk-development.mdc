@@ -20,7 +20,7 @@ The desired structure mirrors `turnstay_api_admin_sdk` and `peach_v2_sdk`:
 
 ## Before You Start a New SDK
 
-**Cross-reference `peach_v2_sdk` as you go.** It's the actively maintained reference. The `sdk_scaffolding` repo provides the canonical starting layout, but it may lag behind. When something looks out of date, copy the current shape from `peach_v2_sdk` and consider opening a PR to refresh the scaffold.
+**Cross-reference `peach_v2_sdk` as you go.** It's the actively maintained reference. The `sdk_scaffolding` repo provides the canonical starting layout, but it may lag behind. When something looks out of date, copy the current shape from `peach_v2_sdk` and consider opening a PR to refresh the scaffold. For CI/CD (`.github/`), `the_good_people_sdk` is the current fully-green reference. Read other repos from `origin/main` (`git fetch`, then `git show origin/main:<path>`), not a local checkout, which is often stale.
 
 **When copying from another SDK or scaffold, don't forget the hidden files.** A `cp -r ../source_sdk/* .` skips dotfiles. Use `cp -a` or explicitly include them. The ones to watch:
 - `.github/` — CI/CD workflows + composite actions (almost always needed)
@@ -32,7 +32,7 @@ The desired structure mirrors `turnstay_api_admin_sdk` and `peach_v2_sdk`:
 
 **TurnStay SDKs use Poetry, not Hatch.** Even if a scaffold or template starts on Hatch, convert to Poetry — the included CI workflow and composite actions assume Poetry.
 
-**Pin ruff to the exact same version in `pyproject.toml` and `.pre-commit-config.yaml`.** Drift between local pre-commit hooks and the static-analysis CI step causes "passes locally, fails in CI" loops. Use an exact pin (e.g. `ruff = "0.15.12"` in both files), not a caret range.
+**Pin ruff to the exact same version in `pyproject.toml` and `.pre-commit-config.yaml`.** Drift between local pre-commit hooks and the static-analysis CI step causes "passes locally, fails in CI" loops. Use an exact pin (e.g. `ruff = "0.16.9"` in both files), not a caret range.
 
 ---
 
@@ -131,8 +131,8 @@ class GetRequest(BaseRequest):
 |------------|----------|-----------------|
 | **BaseRequest** | `schemas/requests.py` | api_key, environment, path, verb, auth_headers(), url(), request_headers() |
 | **BaseParams** | `schemas/requests.py` | Serialization (e.g. Decimal → str) |
-| **BaseResponse** | `schemas/responses.py` | Empty base for response models |
-| **BaseResponseError** | `schemas/responses.py` | status, reason, errors |
+| **BaseResponse** | `schemas/responses.py` | `http_status`, set by `client_utils` (not `status`, so it never clashes with an API object's own `status`) |
+| **BaseResponseError** | `schemas/responses.py` | status, reason, errors (non-2xx, or a 2xx body that failed to parse) |
 
 Endpoint-specific Requests override only what differs: `path`, `response_type`, `verb`, and optionally `url()` for custom base URLs.
 
@@ -143,7 +143,7 @@ Endpoint-specific Requests override only what differs: `path`, `response_type`, 
 All code related to making API calls lives in `client_utils.py`, **not** in the Client.
 
 - **`execute(request: BaseRequest)`** – Main entry: builds URL, headers, payload, performs HTTP call, delegates to `parse_response`
-- **`parse_response(request, response)`** – Handles 2xx vs error status, returns `Response` or `BaseResponseError`
+- **`parse_response(request, response)`** – Decodes JSON; non-2xx returns `BaseResponseError`; 2xx returns `Response` with `http_status`; a schema mismatch returns `BaseResponseError` keeping the raw `body`. Catch specific exceptions, not `Exception`
 - **`wrap_response(response, response_type)`** – Converts raw JSON to typed Response
 - **`remove_null(data)`** – Recursively strips None/empty values for POST bodies
 
@@ -186,17 +186,14 @@ Every new endpoint must be added to `run_sdk.py`. This file lets users run a sin
 ```python
 async def run_<endpoint_name>():
     client = Client(api_key=API_KEY, environment=ENVIRONMENT)
-    try:
-        response = await client.<method_name>(...)
-        print("---------------------------------------------------------------")
-        print("<Endpoint> Response:", response)
-        print("---------------------------------------------------------------")
-        return response
-    except Exception as e:
-        print("---------------------------------------------------------------")
-        print(f"<Endpoint> failed: {e}")
-        print("---------------------------------------------------------------")
+    response = await client.<method_name>(...)
+    print("---------------------------------------------------------------")
+    print("<Endpoint> Response:", response)
+    print("---------------------------------------------------------------")
+    return response
 ```
+
+No `try/except`: API errors come back as `BaseResponseError`, and ruff rejects `except Exception` (BLE001).
 
 Wire the new `run_*` function into `main()` so it can be executed when running the script.
 

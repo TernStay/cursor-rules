@@ -13,7 +13,7 @@ All code related to making API calls lives in `client_utils.py`, **not** in the 
 | Function | Responsibility |
 |----------|-----------------|
 | **execute(request: BaseRequest)** | Main entry: builds URL, headers, payload, performs HTTP call, delegates to parse_response |
-| **parse_response(request, response)** | Handles 2xx vs error status, returns Response or BaseResponseError |
+| **parse_response(request, response)** | Decodes JSON; non-2xx returns BaseResponseError; 2xx returns Response with `http_status`; a schema mismatch returns BaseResponseError keeping the raw `body`. Catch specific exceptions, not `Exception` |
 | **wrap_response(response, response_type)** | Converts raw JSON to typed Response |
 | **remove_null(data)** | Recursively strips None/empty values for POST bodies |
 
