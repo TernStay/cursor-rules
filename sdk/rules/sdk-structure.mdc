@@ -6,7 +6,7 @@ globs: ["**/pyproject.toml", "**/__about__.py", "**/README.md"]
 
 # SDK Project Structure
 
-Use [sdk_scaffolding](https://github.com/TernStay/sdk_scaffolding) as the starting point for new SDKs. The reference implementation is [turnstay_api_admin_sdk](https://github.com/TernStay/turnstay_api_admin_sdk).
+Use [sdk_scaffolding](https://github.com/TernStay/sdk_scaffolding) as the starting point for new SDKs. The reference implementation is [turnstay_api_admin_sdk](https://github.com/TernStay/turnstay_api_admin_sdk). For CI/CD (`.github/`), [the_good_people_sdk](https://github.com/TernStay/the_good_people_sdk) is the current reference. Read other repos from `origin/main`, not a local checkout.
 
 ## Desired Layout
 

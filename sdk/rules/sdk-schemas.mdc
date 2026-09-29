@@ -20,8 +20,8 @@ Each endpoint has three core schema types:
 |------------|----------|-----------------|
 | **BaseRequest** | `schemas/requests.py` | api_key, environment, path, verb, auth_headers(), url(), request_headers() |
 | **BaseParams** | `schemas/requests.py` | Serialization (e.g. Decimal → str) |
-| **BaseResponse** | `schemas/responses.py` | Empty base for response models |
-| **BaseResponseError** | `schemas/responses.py` | status, reason, errors |
+| **BaseResponse** | `schemas/responses.py` | `http_status`, set by `client_utils` (not `status`, so it never clashes with an API object's own `status`) |
+| **BaseResponseError** | `schemas/responses.py` | status, reason, errors (non-2xx, or a 2xx body that failed to parse) |
 
 Endpoint-specific Requests override only what differs: `path`, `response_type`, `verb`, and optionally `url()` for custom base URLs.
 

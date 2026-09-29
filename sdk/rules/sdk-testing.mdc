@@ -22,17 +22,14 @@ Every new endpoint must be added to `run_sdk.py`. This file lets users run a sin
 ```python
 async def run_<endpoint_name>():
     client = Client(api_key=API_KEY, environment=ENVIRONMENT)
-    try:
-        response = await client.<method_name>(...)
-        print("---------------------------------------------------------------")
-        print("<Endpoint> Response:", response)
-        print("---------------------------------------------------------------")
-        return response
-    except Exception as e:
-        print("---------------------------------------------------------------")
-        print(f"<Endpoint> failed: {e}")
-        print("---------------------------------------------------------------")
+    response = await client.<method_name>(...)
+    print("---------------------------------------------------------------")
+    print("<Endpoint> Response:", response)
+    print("---------------------------------------------------------------")
+    return response
 ```
+
+No `try/except`: API errors come back as `BaseResponseError`, and ruff rejects `except Exception` (BLE001).
 
 Wire the new `run_*` function into `main()` so it can be executed when running the script.
 
