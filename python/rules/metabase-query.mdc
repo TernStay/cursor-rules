@@ -1,0 +1,82 @@
+---
+name: metabase-query
+description: "Query TurnStay production data (recon, ledger, turnstay_api, treasury, money-mover) read-only through Metabase. Use when a bug only reproduces in production, when local/dev data is unrepresentative, or to check what production actually contains before proposing a fix."
+alwaysApply: false
+---
+
+# Querying Production Through Metabase
+
+Metabase connects to the production **read replicas** with a read-only role, so
+it is the quickest way to see production data — no bastion, no tunnel, no SSH.
+
+## Run It
+
+The script lives in the cursor-rules repo at `tools/metabase-query/query.py`
+(clone `TernStay/cursor-rules` to `~/TurnStay/cursor-rules` if you haven't). It
+needs `httpx` and `python-dotenv`, which the metabase repo's environment already
+has:
+
+```bash
+cd ~/TurnStay/metabase && poetry run python ~/TurnStay/cursor-rules/tools/metabase-query/query.py --databases
+cd ~/TurnStay/metabase && poetry run python ~/TurnStay/cursor-rules/tools/metabase-query/query.py 4 "select count(*) from accounts"
+```
+
+For anything long, write the SQL to a file first — quoting multi-line SQL
+through a shell is where this goes wrong:
+
+```bash
+cd ~/TurnStay/metabase && poetry run python ~/TurnStay/cursor-rules/tools/metabase-query/query.py 4 --file /tmp/q.sql
+```
+
+Add `--json` for machine-readable output.
+
+## Databases
+
+Confirm with `--databases`; ids have been stable:
+
+| id | Database |
+|---|---|
+| 2 | TurnStay API Read Replica |
+| 3 | Ledger Production Read Replica |
+| 4 | Recon (prod) |
+| 5 | Treasury Read Replica |
+| 6 | Money Mover |
+
+## Credentials
+
+`METABASE_USER` and `METABASE_PASSWORD` in `~/TurnStay/metabase/.env`. They are
+not in the calling repo, and the script loads that path explicitly rather than
+relying on the working directory.
+
+## Rules
+
+- **Read-only.** The role cannot write, and the script refuses statements that
+  look like they do. Never work around either.
+- **This is real customer data.** Query what the question needs. Prefer counts,
+  aggregates and shapes over dumping rows; do not print cardholder names, emails
+  or card numbers into the chat when a count would answer the question.
+- **Never paste the password** into a command, a file, or the chat.
+
+## Worth Knowing
+
+- Columns are not always what the model suggests — `monthly_statements` has
+  `start_of_month`, not `month`. Check first:
+  `select column_name, data_type from information_schema.columns where table_name = 'x' order by ordinal_position`
+- A failed query returns HTTP 200 with `status: failed`; the script surfaces the
+  error rather than printing empty output.
+- Enum columns come back as `USER-DEFINED` in `information_schema`.
+
+## When This Earns Its Keep
+
+Diagnosing something that works locally and fails in production. Local data is
+often a stale or partial copy, so "it works on my machine" usually means the
+local data does not have the shape that triggers the bug. Two examples:
+
+- A page that hung in production loaded entities with eagerly-loaded
+  relationships. The dev account had **zero** matched rows, so it never showed;
+  production was fully reconciled, so it did.
+- A generator that silently produced nothing "looked unconfigured". Production
+  had all 14 required rows and 4,320 statements for the other service and none
+  for this one — which pointed straight at the page rather than the setup.
+
+Check production before concluding that something is not set up.
